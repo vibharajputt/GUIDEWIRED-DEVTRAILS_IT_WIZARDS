@@ -2293,10 +2293,10 @@ PLANNED:
 
 | Name | Role | Responsibilities |
 |------|------|-----------------|
-|  | Full Stack Lead | Architecture, Backend APIs, Integration |
-|  | ML and AI Engineer | Risk Model, Fraud Detection, Premium Model |
-|  | Frontend Developer | PWA, Dashboards, UX Design |
-|  | Product and Data | Business Model, Research, Documentation |
+| Mayank Singhal | Full Stack Lead | Architecture, Backend APIs, Integration |
+| Sumit Kumar | ML and AI Engineer | Risk Model, Fraud Detection, Premium Model |
+| Vibha Rajput | Frontend Developer | PWA, Dashboards, UX Design |
+| Sakshi Singh & Bhumika Gupta| Product and Data | Business Model, Research, Documentation |
 
 ---
 
