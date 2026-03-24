@@ -1327,3 +1327,571 @@ def admin_dashboard(db: Session = Depends(get_db)):
             for t in sorted(triggers, key=lambda x: x.created_at or datetime.min, reverse=True)[:5]
         ]
     }
+# ============================================
+# PINCODE TO COORDINATES MAPPING
+# ============================================
+
+PINCODE_COORDS = {
+    "400053": {"lat": 19.1364, "lon": 72.8296, "city": "Mumbai", "zone": "Andheri West"},
+    "400050": {"lat": 19.0544, "lon": 72.8402, "city": "Mumbai", "zone": "Bandra"},
+    "400069": {"lat": 19.0760, "lon": 72.8777, "city": "Mumbai", "zone": "Sion"},
+    "400076": {"lat": 19.0330, "lon": 72.8474, "city": "Mumbai", "zone": "Powai"},
+    "110001": {"lat": 28.6280, "lon": 77.2197, "city": "Delhi", "zone": "Connaught Place"},
+    "110085": {"lat": 28.6920, "lon": 77.1480, "city": "Delhi", "zone": "Rohini"},
+    "110075": {"lat": 28.5918, "lon": 77.0460, "city": "Delhi", "zone": "Dwarka"},
+    "122001": {"lat": 28.4595, "lon": 77.0266, "city": "Gurugram", "zone": "Sector 29"},
+    "560066": {"lat": 12.9698, "lon": 77.7500, "city": "Bangalore", "zone": "Whitefield"},
+    "560034": {"lat": 12.9352, "lon": 77.6245, "city": "Bangalore", "zone": "Koramangala"},
+    "560100": {"lat": 12.8458, "lon": 77.6603, "city": "Bangalore", "zone": "Electronic City"},
+    "600004": {"lat": 13.0500, "lon": 80.2824, "city": "Chennai", "zone": "Marina Beach"},
+    "600017": {"lat": 13.0418, "lon": 80.2341, "city": "Chennai", "zone": "T Nagar"},
+    "201301": {"lat": 28.5355, "lon": 77.3910, "city": "Noida", "zone": "Sector 62"},
+}
+
+
+# ============================================
+# RISK HEATMAP ENDPOINT
+# ============================================
+
+@app.get("/api/zones/risk-map", tags=["Risk Analytics"])
+def get_risk_map_data(db: Session = Depends(get_db)):
+    """Get risk data for all zones — used by Leaflet heatmap"""
+    zones = []
+
+    for pincode, coords in PINCODE_COORDS.items():
+        # Count workers in zone
+        worker_count = db.query(Worker).filter(
+            Worker.pincode == pincode
+        ).count()
+
+        # Count active policies
+        active_policies = 0
+        workers_in_zone = db.query(Worker).filter(
+            Worker.pincode == pincode
+        ).all()
+        for w in workers_in_zone:
+            pol = db.query(Policy).filter(
+                Policy.worker_id == w.id,
+                Policy.status == "active"
+            ).first()
+            if pol:
+                active_policies += 1
+
+        # Count recent claims (last 7 days)
+        week_ago = datetime.now() - timedelta(days=7)
+        recent_claims = 0
+        for w in workers_in_zone:
+            claims = db.query(Claim).filter(
+                Claim.worker_id == w.id,
+                Claim.created_at >= week_ago
+            ).count()
+            recent_claims += claims
+
+        # Get risk score
+        risk_score = calculate_risk_score(pincode, coords["zone"], "zepto")
+
+        # Risk level and color
+        if risk_score <= 0.3:
+            risk_level = "LOW"
+            risk_color = "green"
+        elif risk_score <= 0.6:
+            risk_level = "MEDIUM"
+            risk_color = "orange"
+        elif risk_score <= 0.8:
+            risk_level = "HIGH"
+            risk_color = "red"
+        else:
+            risk_level = "VERY HIGH"
+            risk_color = "darkred"
+
+        zones.append({
+            "pincode": pincode,
+            "city": coords["city"],
+            "zone": coords["zone"],
+            "lat": coords["lat"],
+            "lon": coords["lon"],
+            "risk_score": risk_score,
+            "risk_level": risk_level,
+            "risk_color": risk_color,
+            "workers": worker_count,
+            "active_policies": active_policies,
+            "recent_claims": recent_claims,
+        })
+
+    return {
+        "total_zones": len(zones),
+        "zones": zones,
+        "risk_summary": {
+            "low": sum(1 for z in zones if z["risk_level"] == "LOW"),
+            "medium": sum(1 for z in zones if z["risk_level"] == "MEDIUM"),
+            "high": sum(1 for z in zones if z["risk_level"] == "HIGH"),
+            "very_high": sum(1 for z in zones if z["risk_level"] == "VERY HIGH"),
+        }
+    }
+
+
+# ============================================
+# LIVE WEATHER ENDPOINTS
+# ============================================
+
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY", "")
+AQICN_API_KEY = os.getenv("AQICN_API_KEY", "")
+
+
+@app.get("/api/weather/current/{pincode}", tags=["Live Weather"])
+async def get_current_weather(pincode: str):
+    """Get real-time weather for a pincode"""
+    coords = PINCODE_COORDS.get(pincode)
+    if not coords:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Pincode {pincode} not mapped. Available: {list(PINCODE_COORDS.keys())}"
+        )
+
+    # If no API key, return simulated data
+    if not OPENWEATHER_API_KEY:
+        import random
+        conditions = ["Clear", "Clouds", "Rain", "Haze", "Mist"]
+        condition = random.choice(conditions)
+        temp = round(random.uniform(25, 42), 1)
+        humidity = random.randint(40, 90)
+        wind = round(random.uniform(5, 25), 1)
+        rain = round(random.uniform(0, 20), 1) if condition == "Rain" else 0
+
+        triggers = []
+        if rain > 15:
+            triggers.append({
+                "type": "HEAVY_RAIN",
+                "value": rain,
+                "threshold": 15,
+                "unit": "mm_per_hr",
+                "severity": "high",
+                "description": f"Heavy rainfall: {rain}mm/hr"
+            })
+        if temp > 45:
+            triggers.append({
+                "type": "EXTREME_HEAT",
+                "value": temp,
+                "threshold": 45,
+                "unit": "celsius",
+                "severity": "high",
+                "description": f"Extreme heat: {temp}°C"
+            })
+
+        return {
+            "pincode": pincode,
+            "city": coords["city"],
+            "zone": coords["zone"],
+            "coordinates": {"lat": coords["lat"], "lon": coords["lon"]},
+            "current_weather": {
+                "temperature": temp,
+                "feels_like": temp + 2,
+                "humidity": humidity,
+                "pressure": 1013,
+                "visibility": 10000,
+                "wind_speed_kmh": wind,
+                "wind_direction": 180,
+                "rainfall_1h": rain,
+                "rainfall_3h": rain * 2,
+                "condition": condition,
+                "description": condition.lower(),
+                "icon": "01d",
+            },
+            "triggers_detected": triggers,
+            "trigger_count": len(triggers),
+            "is_safe_for_delivery": len(triggers) == 0,
+            "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "simulated (no API key set)"
+        }
+
+    # Real API call
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                "https://api.openweathermap.org/data/2.5/weather",
+                params={
+                    "lat": coords["lat"],
+                    "lon": coords["lon"],
+                    "appid": OPENWEATHER_API_KEY,
+                    "units": "metric"
+                }
+            )
+            if response.status_code != 200:
+                raise HTTPException(status_code=503, detail="Weather API error")
+
+            data = response.json()
+            main = data.get("main", {})
+            wind = data.get("wind", {})
+            rain = data.get("rain", {})
+            weather_list = data.get("weather", [{}])
+
+            temp = main.get("temp", 25)
+            rain_1h = rain.get("1h", 0)
+            wind_kmh = round(wind.get("speed", 0) * 3.6, 1)
+            visibility = data.get("visibility", 10000)
+            condition = weather_list[0].get("main", "Clear") if weather_list else "Clear"
+            description = weather_list[0].get("description", "clear") if weather_list else "clear"
+
+            triggers = []
+            if rain_1h > 15:
+                triggers.append({
+                    "type": "HEAVY_RAIN", "value": rain_1h, "threshold": 15,
+                    "unit": "mm_per_hr", "severity": "high" if rain_1h < 50 else "critical",
+                    "description": f"Heavy rainfall: {rain_1h}mm/hr"
+                })
+            if temp > 45:
+                triggers.append({
+                    "type": "EXTREME_HEAT", "value": temp, "threshold": 45,
+                    "unit": "celsius", "severity": "high",
+                    "description": f"Extreme heat: {temp}°C"
+                })
+            if visibility < 50:
+                triggers.append({
+                    "type": "DENSE_FOG", "value": visibility, "threshold": 50,
+                    "unit": "visibility_meters", "severity": "medium",
+                    "description": f"Dense fog: visibility {visibility}m"
+                })
+            if wind_kmh > 60:
+                triggers.append({
+                    "type": "HIGH_WIND", "value": wind_kmh, "threshold": 60,
+                    "unit": "kmph", "severity": "medium",
+                    "description": f"High wind: {wind_kmh} km/h"
+                })
+
+            return {
+                "pincode": pincode,
+                "city": coords["city"],
+                "zone": coords["zone"],
+                "coordinates": {"lat": coords["lat"], "lon": coords["lon"]},
+                "current_weather": {
+                    "temperature": temp,
+                    "feels_like": main.get("feels_like", temp),
+                    "humidity": main.get("humidity", 50),
+                    "pressure": main.get("pressure", 1013),
+                    "visibility": visibility,
+                    "wind_speed_kmh": wind_kmh,
+                    "wind_direction": wind.get("deg", 0),
+                    "rainfall_1h": rain_1h,
+                    "rainfall_3h": rain.get("3h", 0),
+                    "condition": condition,
+                    "description": description,
+                    "icon": weather_list[0].get("icon", "01d") if weather_list else "01d",
+                },
+                "triggers_detected": triggers,
+                "trigger_count": len(triggers),
+                "is_safe_for_delivery": len(triggers) == 0,
+                "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "source": "openweathermap"
+            }
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=503, detail="Weather API timeout")
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Weather API error: {str(e)}")
+
+
+@app.get("/api/weather/aqi/{pincode}", tags=["Live Weather"])
+async def get_current_aqi(pincode: str):
+    """Get real-time AQI for a pincode"""
+    coords = PINCODE_COORDS.get(pincode)
+    if not coords:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Pincode {pincode} not mapped."
+        )
+
+    # If no API key, return simulated data
+    if not AQICN_API_KEY:
+        import random
+        aqi_value = random.choice([45, 78, 120, 180, 250, 350, 420])
+
+        if aqi_value <= 50:
+            category, color = "Good", "green"
+        elif aqi_value <= 100:
+            category, color = "Moderate", "yellow"
+        elif aqi_value <= 150:
+            category, color = "Unhealthy for Sensitive", "orange"
+        elif aqi_value <= 200:
+            category, color = "Unhealthy", "red"
+        elif aqi_value <= 300:
+            category, color = "Very Unhealthy", "purple"
+        else:
+            category, color = "Hazardous", "maroon"
+
+        triggers = []
+        if aqi_value > 400:
+            triggers.append({
+                "type": "SEVERE_AQI", "value": aqi_value, "threshold": 400,
+                "unit": "aqi", "severity": "high",
+                "description": f"Severe AQI: {aqi_value} (Hazardous)"
+            })
+
+        return {
+            "pincode": pincode,
+            "city": coords["city"],
+            "zone": coords["zone"],
+            "aqi": {"value": aqi_value, "category": category, "color": color, "dominant_pollutant": "pm25"},
+            "triggers_detected": triggers,
+            "is_safe_for_delivery": len(triggers) == 0,
+            "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "simulated (no API key set)"
+        }
+
+    # Real API call
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                f"https://api.waqi.info/feed/geo:{coords['lat']};{coords['lon']}/",
+                params={"token": AQICN_API_KEY}
+            )
+            if response.status_code != 200:
+                raise HTTPException(status_code=503, detail="AQI API error")
+
+            data = response.json()
+            if data.get("status") != "ok":
+                raise HTTPException(status_code=503, detail="AQI API returned error")
+
+            aqi_data = data.get("data", {})
+            aqi_value = aqi_data.get("aqi", 0)
+
+            if isinstance(aqi_value, str):
+                try:
+                    aqi_value = int(aqi_value)
+                except ValueError:
+                    aqi_value = 0
+
+            if aqi_value <= 50:
+                category, color = "Good", "green"
+            elif aqi_value <= 100:
+                category, color = "Moderate", "yellow"
+            elif aqi_value <= 150:
+                category, color = "Unhealthy for Sensitive", "orange"
+            elif aqi_value <= 200:
+                category, color = "Unhealthy", "red"
+            elif aqi_value <= 300:
+                category, color = "Very Unhealthy", "purple"
+            else:
+                category, color = "Hazardous", "maroon"
+
+            triggers = []
+            if aqi_value > 400:
+                triggers.append({
+                    "type": "SEVERE_AQI", "value": aqi_value, "threshold": 400,
+                    "unit": "aqi", "severity": "high" if aqi_value < 500 else "critical",
+                    "description": f"Severe AQI: {aqi_value} (Hazardous)"
+                })
+
+            return {
+                "pincode": pincode,
+                "city": coords["city"],
+                "zone": coords["zone"],
+                "aqi": {
+                    "value": aqi_value, "category": category, "color": color,
+                    "dominant_pollutant": aqi_data.get("dominentpol", "pm25"),
+                },
+                "triggers_detected": triggers,
+                "is_safe_for_delivery": len(triggers) == 0,
+                "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "source": "aqicn"
+            }
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=503, detail="AQI API timeout")
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"AQI API error: {str(e)}")
+
+
+@app.get("/api/weather/scan-all-zones", tags=["Live Weather"])
+async def scan_all_zones():
+    """Scan ALL zones for weather + AQI triggers"""
+    results = []
+
+    for pincode, coords in PINCODE_COORDS.items():
+        zone_result = {
+            "pincode": pincode,
+            "city": coords["city"],
+            "zone": coords["zone"],
+            "weather_triggers": [],
+            "aqi_triggers": [],
+            "total_triggers": 0,
+            "status": "safe",
+            "temperature": None,
+            "wind_kmh": None,
+            "condition": None,
+            "aqi_value": None,
+        }
+
+        # Weather check
+        try:
+            weather_resp = await get_current_weather(pincode)
+            if isinstance(weather_resp, dict):
+                zone_result["temperature"] = weather_resp.get("current_weather", {}).get("temperature")
+                zone_result["wind_kmh"] = weather_resp.get("current_weather", {}).get("wind_speed_kmh")
+                zone_result["condition"] = weather_resp.get("current_weather", {}).get("condition")
+                zone_result["weather_triggers"] = weather_resp.get("triggers_detected", [])
+        except Exception:
+            pass
+
+        # AQI check
+        try:
+            aqi_resp = await get_current_aqi(pincode)
+            if isinstance(aqi_resp, dict):
+                zone_result["aqi_value"] = aqi_resp.get("aqi", {}).get("value")
+                zone_result["aqi_triggers"] = aqi_resp.get("triggers_detected", [])
+        except Exception:
+            pass
+
+        zone_result["total_triggers"] = (
+            len(zone_result["weather_triggers"]) + len(zone_result["aqi_triggers"])
+        )
+        if zone_result["total_triggers"] > 0:
+            zone_result["status"] = "alert"
+
+        results.append(zone_result)
+
+    alert_zones = [r for r in results if r["status"] == "alert"]
+
+    return {
+        "scanned_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "total_zones_scanned": len(results),
+        "zones_with_alerts": len(alert_zones),
+        "zones_safe": len(results) - len(alert_zones),
+        "results": results,
+        "alerts": alert_zones,
+    }
+
+
+# ============================================
+# FORECAST ENDPOINT
+# ============================================
+
+@app.get("/api/forecast/{pincode}", tags=["Risk Analytics"])
+def get_forecast(pincode: str, db: Session = Depends(get_db)):
+    """Predict next-week risk for a zone"""
+    coords = PINCODE_COORDS.get(pincode)
+    if not coords:
+        raise HTTPException(status_code=400, detail=f"Pincode {pincode} not mapped.")
+
+    risk_score = calculate_risk_score(pincode, coords["zone"], "zepto")
+    season = get_current_season()
+
+    # Workers in zone
+    workers_in_zone = db.query(Worker).filter(Worker.pincode == pincode).count()
+
+    # Prediction logic
+    base_rain = {"Monsoon": 75, "Summer": 35, "Winter": 15, "Post-Monsoon": 25}.get(season, 30)
+    base_aqi = 15
+    if coords["city"] == "Delhi":
+        base_aqi = {"Winter": 65, "Post-Monsoon": 45, "Summer": 20, "Monsoon": 10}.get(season, 25)
+
+    rain_prob = round(min(95, base_rain * (1 + (risk_score - 0.5) * 0.5)), 1)
+    aqi_prob = round(min(95, base_aqi * (1 + (risk_score - 0.5) * 0.3)), 1)
+    flood_prob = round(rain_prob * 0.4 if risk_score > 0.6 else rain_prob * 0.15, 1)
+    curfew_prob = round(5 + (risk_score * 3), 1)
+
+    expected_claims = round(workers_in_zone * (rain_prob / 100) * 0.6)
+    expected_payout = round(expected_claims * 250)
+
+    return {
+        "pincode": pincode,
+        "city": coords["city"],
+        "zone": coords["zone"],
+        "forecast_period": "Next 7 days",
+        "current_season": season,
+        "risk_score": risk_score,
+        "predictions": {
+            "heavy_rain": {"probability": rain_prob},
+            "severe_aqi": {"probability": aqi_prob},
+            "flooding": {"probability": flood_prob},
+            "curfew_bandh": {"probability": curfew_prob},
+        },
+        "expected_impact": {
+            "workers_in_zone": workers_in_zone,
+            "expected_claims": expected_claims,
+            "expected_payout": f"₹{expected_payout}",
+            "reserve_recommendation": f"₹{round(expected_payout * 1.3)}",
+        },
+        "worker_advisory": (
+            f"Rain likely this week in {coords['zone']}. Your coverage is active!"
+            if rain_prob > 50
+            else f"Low disruption risk in {coords['zone']}. Stay safe!"
+        ),
+    }
+
+
+# ============================================
+# STREAK REWARDS ENDPOINT
+# ============================================
+
+@app.get("/api/workers/{worker_id}/streak", tags=["Worker Management"])
+def get_worker_streak(worker_id: int, db: Session = Depends(get_db)):
+    """Check worker's clean streak for rewards"""
+    worker = db.query(Worker).filter(Worker.id == worker_id).first()
+    if not worker:
+        raise HTTPException(status_code=404, detail="Worker not found.")
+
+    four_weeks_ago = datetime.now() - timedelta(weeks=4)
+    recent_claims = db.query(Claim).filter(
+        Claim.worker_id == worker_id,
+        Claim.created_at >= four_weeks_ago
+    ).all()
+
+    fraud_flags = [c for c in recent_claims if c.status == "rejected" or c.fraud_score > 50]
+    clean_weeks = max(0, 4 - len(fraud_flags))
+    has_streak = clean_weeks >= 4
+    discount = 5.0 if has_streak else 0.0
+
+    return {
+        "worker_id": worker_id,
+        "worker_name": worker.name,
+        "clean_weeks": clean_weeks,
+        "streak_active": has_streak,
+        "premium_discount": f"₹{discount}/week" if has_streak else "None yet",
+        "weeks_to_streak": max(0, 4 - clean_weeks),
+        "trust_score": worker.trust_score,
+        "trust_tier": worker.trust_tier,
+        "message": (
+            "🎉 4-week clean streak! You get ₹5 off next week's premium!"
+            if has_streak
+            else f"Keep going! {max(0, 4 - clean_weeks)} more clean weeks for ₹5 discount."
+        )
+    }
+
+
+# ============================================
+# APPEAL ENDPOINT
+# ============================================
+
+class AppealRequest(BaseModel):
+    claim_id: int
+    reason: str
+    evidence_type: Optional[str] = None
+    evidence_url: Optional[str] = None
+
+@app.post("/api/claims/{claim_id}/appeal", tags=["Claims Management"])
+def appeal_claim(claim_id: int, appeal: AppealRequest, db: Session = Depends(get_db)):
+    """Worker can appeal a rejected claim"""
+    c = db.query(Claim).filter(Claim.id == claim_id).first()
+    if not c:
+        raise HTTPException(status_code=404, detail="Claim not found.")
+    if c.status not in ["rejected", "manual_review"]:
+        raise HTTPException(status_code=400, detail=f"Cannot appeal a {c.status} claim.")
+
+    worker = db.query(Worker).filter(Worker.id == c.worker_id).first()
+
+    c.status = "under_appeal"
+    if c.fraud_details is None:
+        c.fraud_details = {}
+    c.fraud_details["appeal"] = {
+        "reason": appeal.reason,
+        "evidence_type": appeal.evidence_type,
+        "appealed_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "status": "pending_review"
+    }
+    db.commit()
+
+    return {
+        "message": "Appeal submitted! Admin will review within 4 hours.",
+        "claim_id": c.id,
+        "worker_name": worker.name,
+        "appeal_status": "pending_review",
+        "expected_review_time": "Within 4 hours",
+    }
