@@ -11,9 +11,9 @@ const RISK_COLORS = {
 };
 
 const RISK_BG = {
-  LOW: 'bg-green-100 text-green-700',
-  MEDIUM: 'bg-orange-100 text-orange-700',
-  HIGH: 'bg-red-100 text-red-700',
+  LOW: 'bg-emerald-500/20 text-emerald-300',
+  MEDIUM: 'bg-orange-500/20 text-orange-300',
+  HIGH: 'bg-red-500/20 text-red-300',
   'VERY HIGH': 'bg-red-200 text-red-900',
 };
 
@@ -26,6 +26,7 @@ function RiskMap() {
   const [selectedZone, setSelectedZone] = useState(null);
   const [forecast, setForecast] = useState(null);
   const [forecastLoading, setForecastLoading] = useState(false);
+  const [godModeActive, setGodModeActive] = useState(false);
 
   useEffect(() => {
     loadRiskData();
@@ -55,6 +56,37 @@ function RiskMap() {
     setScanning(false);
   };
 
+  const handleGodMode = () => {
+    setGodModeActive(true);
+    setScanning(true);
+    setTimeout(() => {
+      // Override local zones to max risk
+      const simulatedCat5 = zones.map(z => ({
+        ...z,
+        risk_level: 'VERY HIGH',
+        risk_score: 99
+      }));
+      setZones(simulatedCat5);
+      
+      // Override local liveWeather mapping to turn it all red
+      setLiveWeather({
+        total_zones_scanned: simulatedCat5.length,
+        zones_safe: 0,
+        zones_with_alerts: simulatedCat5.length,
+        scanned_at: new Date().toLocaleTimeString(),
+        alerts: simulatedCat5.map(z => ({
+           pincode: z.pincode,
+           zone: z.name,
+           city: z.city,
+           temperature: 46,
+           wind_kmh: 125,
+           weather_triggers: [{ description: 'CATEGORY 5 STORM - GOD MODE ACTIVE' }]
+        }))
+      });
+      setScanning(false);
+    }, 1500);
+  };
+
   const handleZoneClick = async (zone) => {
     setSelectedZone(zone);
     setForecastLoading(true);
@@ -70,67 +102,80 @@ function RiskMap() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 text-slate-200">
         <div className="text-center">
           <div className="text-5xl mb-4 animate-pulse">🗺️</div>
-          <p className="text-xl text-gray-600">Loading Risk Map...</p>
+          <p className="text-xl text-slate-300">Loading Risk Map...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b px-4 py-4">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 text-slate-200">
+      <div className="glass-panel shadow-sm border-b border-white/5 border-white/5 px-4 py-4 sticky top-0 z-50 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">🗺️ Zone Risk Heatmap</h1>
-            <p className="text-gray-500 text-sm">
+            <h1 className="text-2xl font-bold text-white">🗺️ Zone Risk Heatmap</h1>
+            <p className="text-slate-400 text-sm">
               Real-time risk levels across all operational zones
             </p>
           </div>
-          <button
-            onClick={handleLiveScan}
-            disabled={scanning}
-            className="bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 disabled:bg-gray-400 transition flex items-center space-x-2"
-          >
-            {scanning ? (
-              <>
-                <span className="animate-spin">⏳</span>
-                <span>Scanning...</span>
-              </>
-            ) : (
-              <>
-                <span>🔄</span>
-                <span>Live Weather Scan</span>
-              </>
-            )}
-          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={handleGodMode}
+              disabled={godModeActive || scanning}
+              className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center space-x-2 border shadow-lg ${
+                godModeActive 
+                  ? 'bg-red-500 text-white border-red-400 animate-pulse' 
+                  : 'bg-red-950/50 text-red-500 border-red-500/30 hover:bg-red-900/40 hover:text-red-400'
+              }`}
+            >
+              {godModeActive ? <span>🌩️ STORM ACTIVE</span> : <span>🌍 INJECT STORM (GOD MODE)</span>}
+            </button>
+            <button
+              onClick={handleLiveScan}
+              disabled={scanning}
+              className="bg-brand-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(79,70,229,0.3)] border border-brand-500 hover:bg-brand-500 disabled:opacity-50 transition flex items-center space-x-2"
+            >
+              {scanning && !godModeActive ? (
+                <>
+                  <span className="animate-spin">⏳</span>
+                  <span>Scanning...</span>
+                </>
+              ) : (
+                <>
+                  <span>🔄</span>
+                  <span>Live Weather Scan</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
       {summary && (
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div className="bg-white border-2 border-blue-200 p-4 rounded-xl text-center">
-              <div className="text-2xl font-bold text-blue-700">{zones.length}</div>
-              <div className="text-xs text-blue-600 font-medium">Total Zones</div>
+            <div className="glass-panel border border-brand-500/30 p-4 rounded-3xl text-center shadow-lg">
+              <div className="text-2xl font-bold text-brand-300">{zones.length}</div>
+              <div className="text-xs text-brand-400 font-medium">Total Zones</div>
             </div>
-            <div className="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
-              <div className="text-2xl font-bold text-green-700">{summary.low}</div>
-              <div className="text-xs text-green-600 font-medium">🟢 Low Risk</div>
+            <div className="bg-emerald-900/20 border border-emerald-500/30 p-4 rounded-3xl text-center shadow-lg">
+              <div className="text-2xl font-bold text-emerald-300">{summary.low}</div>
+              <div className="text-xs text-emerald-400 font-medium">🟢 Low Risk</div>
             </div>
-            <div className="bg-orange-50 border border-orange-200 p-4 rounded-xl text-center">
-              <div className="text-2xl font-bold text-orange-700">{summary.medium}</div>
-              <div className="text-xs text-orange-600 font-medium">🟠 Medium Risk</div>
+            <div className="bg-orange-900/20 border border-orange-500/30 p-4 rounded-3xl text-center shadow-lg">
+              <div className="text-2xl font-bold text-orange-300">{summary.medium}</div>
+              <div className="text-xs text-orange-400 font-medium">🟠 Medium Risk</div>
             </div>
-            <div className="bg-red-50 border border-red-200 p-4 rounded-xl text-center">
-              <div className="text-2xl font-bold text-red-700">{summary.high}</div>
-              <div className="text-xs text-red-600 font-medium">🔴 High Risk</div>
+            <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-3xl text-center shadow-lg">
+              <div className="text-2xl font-bold text-red-300">{summary.high}</div>
+              <div className="text-xs text-red-400 font-medium">🔴 High Risk</div>
             </div>
-            <div className="bg-red-100 border border-red-300 p-4 rounded-xl text-center">
+            <div className="bg-red-950/40 border border-red-500/50 p-4 rounded-3xl text-center shadow-lg">
               <div className="text-2xl font-bold text-red-900">{summary.very_high}</div>
-              <div className="text-xs text-red-700 font-medium">⛔ Very High</div>
+              <div className="text-xs text-red-300 font-medium">⛔ Very High</div>
             </div>
           </div>
         </div>
@@ -138,24 +183,24 @@ function RiskMap() {
 
       {liveWeather && liveWeather.alerts && liveWeather.alerts.length > 0 && (
         <div className="max-w-6xl mx-auto px-4 pb-3">
-          <div className="bg-red-50 border-2 border-red-300 p-4 rounded-xl">
-            <h3 className="font-bold text-red-700 mb-3 flex items-center">
+          <div className="bg-red-950/40 border-2 border-red-500/50 p-6 rounded-3xl shadow-xl">
+            <h3 className="font-bold text-red-300 mb-3 flex items-center">
               <span className="text-xl mr-2">🚨</span>
               LIVE ALERTS — {liveWeather.zones_with_alerts} zone
               {liveWeather.zones_with_alerts > 1 ? 's' : ''} affected
             </h3>
             <div className="space-y-2">
               {liveWeather.alerts.map((alert, i) => (
-                <div key={i} className="bg-white p-3 rounded-lg border border-red-200">
+                <div key={i} className="glass-panel border-red-500/30 border p-4 rounded-2xl">
                   <div className="flex justify-between items-start">
                     <div>
-                      <span className="font-bold text-red-700">{alert.zone}</span>
-                      <span className="text-gray-500 text-sm ml-2">
+                      <span className="font-bold text-red-300">{alert.zone}</span>
+                      <span className="text-slate-400 text-sm ml-2">
                         ({alert.city} — {alert.pincode})
                       </span>
                     </div>
                     {alert.temperature && (
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-slate-300">
                         {Math.round(alert.temperature)}°C | 💨 {alert.wind_kmh} km/h
                       </span>
                     )}
@@ -165,7 +210,7 @@ function RiskMap() {
                       alert.weather_triggers.map((t, j) => (
                         <span
                           key={`w${j}`}
-                          className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-medium"
+                          className="bg-red-500/20 text-red-300 px-2 py-1 rounded text-xs font-medium"
                         >
                           🌧️ {t.description}
                         </span>
@@ -193,12 +238,12 @@ function RiskMap() {
 
       {liveWeather && (!liveWeather.alerts || liveWeather.alerts.length === 0) && (
         <div className="max-w-6xl mx-auto px-4 pb-3">
-          <div className="bg-green-50 border border-green-200 p-4 rounded-xl text-center">
+          <div className="bg-emerald-900/20 border border-emerald-500/20 border border-green-200 p-4 rounded-xl text-center">
             <span className="text-2xl mr-2">✅</span>
-            <span className="text-green-700 font-medium">
+            <span className="text-emerald-300 font-medium">
               All {liveWeather.total_zones_scanned} zones are safe! No active weather alerts.
             </span>
-            <p className="text-xs text-green-500 mt-1">
+            <p className="text-xs text-emerald-400 mt-1">
               Scanned at: {liveWeather.scanned_at}
             </p>
           </div>
@@ -208,7 +253,7 @@ function RiskMap() {
       <div className="max-w-6xl mx-auto px-4 pb-6">
         <div className="grid md:grid-cols-3 gap-4">
           <div
-            className="md:col-span-2 bg-white rounded-2xl shadow-lg overflow-hidden"
+            className="md:col-span-2 glass-panel border-white/5 border rounded-2xl shadow-lg overflow-hidden"
             style={{ height: '520px' }}
           >
             <MapContainer
@@ -315,11 +360,11 @@ function RiskMap() {
 
           <div className="space-y-4" style={{ maxHeight: '520px', overflowY: 'auto' }}>
             {selectedZone ? (
-              <div className="bg-white p-5 rounded-2xl shadow-lg">
+              <div className="glass-panel border-white/5 border p-5 rounded-2xl shadow-lg">
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-bold text-lg">{selectedZone.zone}</h3>
-                    <p className="text-gray-500 text-sm">
+                    <p className="text-slate-400 text-sm">
                       {selectedZone.city} — {selectedZone.pincode}
                     </p>
                   </div>
@@ -332,11 +377,11 @@ function RiskMap() {
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex justify-between text-xs text-slate-400 mb-1">
                     <span>Risk Score</span>
                     <span className="font-bold">{selectedZone.risk_score}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
+                  <div className="w-full glass-super border border-white/5 rounded-full h-3">
                     <div
                       className="h-3 rounded-full transition-all duration-500"
                       style={{
@@ -348,20 +393,20 @@ function RiskMap() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="bg-blue-50 p-2 rounded-lg text-center">
-                    <div className="text-lg font-bold text-blue-700">
+                  <div className="glass-panel border border-b border-white/5lue-500/20 bg-blue-900/20 p-2 rounded-lg text-center">
+                    <div className="text-lg font-bold text-brand-300">
                       {selectedZone.workers}
                     </div>
                     <div className="text-xs text-blue-500">Workers</div>
                   </div>
-                  <div className="bg-green-50 p-2 rounded-lg text-center">
-                    <div className="text-lg font-bold text-green-700">
+                  <div className="glass-panel border border-emerald-500/20 bg-emerald-900/20 p-2 rounded-lg text-center">
+                    <div className="text-lg font-bold text-emerald-300">
                       {selectedZone.active_policies}
                     </div>
-                    <div className="text-xs text-green-500">Policies</div>
+                    <div className="text-xs text-emerald-400">Policies</div>
                   </div>
-                  <div className="bg-orange-50 p-2 rounded-lg text-center">
-                    <div className="text-lg font-bold text-orange-700">
+                  <div className="bg-orange-900/20 border border-orange-500/20 p-2 rounded-lg text-center">
+                    <div className="text-lg font-bold text-orange-300">
                       {selectedZone.recent_claims}
                     </div>
                     <div className="text-xs text-orange-500">Claims 7d</div>
@@ -369,23 +414,23 @@ function RiskMap() {
                 </div>
               </div>
             ) : (
-              <div className="bg-white p-5 rounded-2xl shadow-lg text-center">
+              <div className="glass-panel border-white/5 border p-5 rounded-2xl shadow-lg text-center">
                 <div className="text-3xl mb-2">👆</div>
-                <p className="text-gray-500 text-sm">
+                <p className="text-slate-400 text-sm">
                   Click a zone on the map to see details and forecast
                 </p>
               </div>
             )}
 
             {selectedZone && forecastLoading && (
-              <div className="bg-white p-5 rounded-2xl shadow-lg text-center">
-                <div className="animate-pulse text-gray-400">Loading forecast...</div>
+              <div className="glass-panel border-white/5 border p-5 rounded-2xl shadow-lg text-center">
+                <div className="animate-pulse text-slate-500">Loading forecast...</div>
               </div>
             )}
 
             {selectedZone && forecast && !forecastLoading && (
-              <div className="bg-white p-5 rounded-2xl shadow-lg">
-                <h4 className="font-bold text-gray-800 mb-3 flex items-center">
+              <div className="glass-panel border-white/5 border p-5 rounded-2xl shadow-lg">
+                <h4 className="font-bold text-white mb-3 flex items-center">
                   <span className="mr-2">📅</span>
                   Next Week Forecast
                 </h4>
@@ -409,16 +454,16 @@ function RiskMap() {
                           <span
                             className={`font-bold ${
                               pred.probability > 60
-                                ? 'text-red-600'
+                                ? 'text-red-400'
                                 : pred.probability > 30
-                                ? 'text-yellow-600'
-                                : 'text-green-600'
+                                ? 'text-yellow-400'
+                                : 'text-emerald-400'
                             }`}
                           >
                             {pred.probability}%
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div className="w-full glass-super border border-white/5 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full transition-all duration-500 ${
                               pred.probability > 60
@@ -437,8 +482,8 @@ function RiskMap() {
                   })}
                 </div>
 
-                <div className="mt-4 bg-gray-50 p-3 rounded-xl">
-                  <div className="text-xs text-gray-500 mb-1">Expected Impact</div>
+                <div className="mt-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 text-slate-200 p-3 rounded-xl">
+                  <div className="text-xs text-slate-400 mb-1">Expected Impact</div>
                   <div className="flex justify-between text-sm">
                     <span>
                       Claims:{' '}
@@ -449,7 +494,7 @@ function RiskMap() {
                       <strong>{forecast.expected_impact.expected_payout}</strong>
                     </span>
                   </div>
-                  <div className="text-xs text-blue-600 mt-1">
+                  <div className="text-xs text-brand-400 mt-1">
                     Reserve: {forecast.expected_impact.reserve_recommendation}
                   </div>
                 </div>
@@ -457,8 +502,8 @@ function RiskMap() {
                 <div
                   className={`mt-3 p-2 rounded-lg text-xs ${
                     forecast.predictions.heavy_rain?.probability > 50
-                      ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                      : 'bg-green-50 text-green-700 border border-green-200'
+                      ? 'bg-yellow-900/20 border border-yellow-500/20 text-yellow-300 border border-yellow-200'
+                      : 'bg-emerald-900/20 border border-emerald-500/20 text-emerald-300 border border-green-200'
                   }`}
                 >
                   💡 {forecast.worker_advisory}
@@ -466,8 +511,8 @@ function RiskMap() {
               </div>
             )}
 
-            <div className="bg-white p-4 rounded-2xl shadow-lg">
-              <h4 className="font-bold text-gray-800 text-sm mb-3">🎨 Legend</h4>
+            <div className="glass-panel border-white/5 border p-4 rounded-2xl shadow-lg">
+              <h4 className="font-bold text-white text-sm mb-3">🎨 Legend</h4>
               <div className="space-y-2">
                 {[
                   { level: 'LOW', range: '0.0 - 0.3', desc: 'Minimal disruption risk' },
@@ -482,15 +527,15 @@ function RiskMap() {
                     />
                     <div>
                       <span className="text-xs font-bold">{item.level}</span>
-                      <span className="text-xs text-gray-400 ml-1">({item.range})</span>
-                      <p className="text-xs text-gray-500">{item.desc}</p>
+                      <span className="text-xs text-slate-500 ml-1">({item.range})</span>
+                      <p className="text-xs text-slate-400">{item.desc}</p>
                     </div>
                   </div>
                 ))}
               </div>
               <div className="mt-3 flex items-center space-x-2">
                 <div className="w-4 h-4 rounded-full bg-red-600 animate-pulse flex-shrink-0" />
-                <span className="text-xs font-bold text-red-600">🚨 Live Alert Active</span>
+                <span className="text-xs font-bold text-red-400">🚨 Live Alert Active</span>
               </div>
             </div>
           </div>
@@ -498,12 +543,12 @@ function RiskMap() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 pb-8">
-        <div className="bg-white p-6 rounded-2xl shadow-lg">
+        <div className="glass-panel p-6 rounded-3xl shadow-xl border border-white/5">
           <h3 className="text-lg font-bold mb-4">📊 All Zones — Risk Rankings</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-100">
+                <tr className="bg-slate-800/80">
                   <th className="p-3 text-left">#</th>
                   <th className="p-3 text-left">Zone</th>
                   <th className="p-3 text-left">City</th>
@@ -527,26 +572,26 @@ function RiskMap() {
                     return (
                       <tr
                         key={zone.pincode}
-                        className={`border-b cursor-pointer transition ${
+                        className={`border-b border-white/5 cursor-pointer transition ${
                           isSelected
-                            ? 'bg-blue-50'
+                            ? 'bg-blue-900/20 border border-b border-white/5lue-500/20'
                             : hasLiveAlert
-                            ? 'bg-red-50'
-                            : 'hover:bg-gray-50'
+                            ? 'bg-red-900/20 border border-red-500/20'
+                            : 'hover:bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-slate-950 text-slate-200'
                         }`}
                         onClick={() => handleZoneClick(zone)}
                       >
-                        <td className="p-3 text-gray-400">{index + 1}</td>
+                        <td className="p-3 text-slate-500">{index + 1}</td>
                         <td className="p-3">
                           <span className="font-medium">{zone.zone}</span>
                           {hasLiveAlert && (
-                            <span className="ml-2 text-xs text-red-600 animate-pulse">
+                            <span className="ml-2 text-xs text-red-400 animate-pulse">
                               🚨
                             </span>
                           )}
                         </td>
-                        <td className="p-3 text-gray-600">{zone.city}</td>
-                        <td className="p-3 font-mono text-gray-500 text-xs">
+                        <td className="p-3 text-slate-300">{zone.city}</td>
+                        <td className="p-3 font-mono text-slate-400 text-xs">
                           {zone.pincode}
                         </td>
                         <td className="p-3">
@@ -560,7 +605,7 @@ function RiskMap() {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center space-x-2">
-                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                            <div className="w-16 glass-super border border-white/5 rounded-full h-2">
                               <div
                                 className="h-2 rounded-full"
                                 style={{
@@ -578,8 +623,8 @@ function RiskMap() {
                           <span
                             className={`font-bold ${
                               zone.recent_claims > 0
-                                ? 'text-orange-600'
-                                : 'text-gray-400'
+                                ? 'text-orange-400'
+                                : 'text-slate-500'
                             }`}
                           >
                             {zone.recent_claims}

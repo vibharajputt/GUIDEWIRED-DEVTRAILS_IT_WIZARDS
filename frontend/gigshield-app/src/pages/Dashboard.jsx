@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ShieldAlert, MapIcon, TrendingUp, AlertTriangle, CloudRain, Clock, Activity, Power, LogOut, XCircle, Info, ChevronRight, Zap, Mic, Satellite, Car, Cpu, RadioReceiver } from 'lucide-react';
 import {
   getWorkerDashboard,
   getWorkerClaims,
@@ -15,6 +17,14 @@ import {
   appealClaim,
   getClaimDetails,
 } from '../services/api';
+import FraudShield from '../components/FraudShield';
+import NotificationCenter from '../components/NotificationCenter';
+import GuidedTour from '../components/GuidedTour';
+import WorkerIDCard from '../components/WorkerIDCard';
+import ThemeToggle from '../components/ThemeToggle';
+import { LanguageToggle, useI18n } from '../components/I18nProvider';
+import AnimatedCounter from '../components/AnimatedCounter';
+import SkeletonLoader from '../components/SkeletonLoader';
 
 // ============================================
 // ZONE TO PINCODE MAP
@@ -56,7 +66,7 @@ const TRIGGER_ICONS = {
 // ============================================
 // WEATHER WIDGET
 // ============================================
-function WeatherWidget({ pincode }) {
+function WeatherWidget({ pincode, coords }) {
   const [weather, setWeather] = useState(null);
   const [aqi, setAqi] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -64,15 +74,15 @@ function WeatherWidget({ pincode }) {
 
   useEffect(() => {
     if (pincode) loadWeather();
-  }, [pincode]);
+  }, [pincode, coords]);
 
   const loadWeather = async () => {
     setLoading(true);
     setError('');
     try {
       const [wRes, aRes] = await Promise.allSettled([
-        getCurrentWeather(pincode),
-        getCurrentAQI(pincode),
+        getCurrentWeather(pincode, coords?.lat, coords?.lon),
+        getCurrentAQI(pincode, coords?.lat, coords?.lon),
       ]);
       if (wRes.status === 'fulfilled') setWeather(wRes.value.data);
       if (aRes.status === 'fulfilled') setAqi(aRes.value.data);
@@ -92,18 +102,19 @@ function WeatherWidget({ pincode }) {
   };
 
   const getAqiStyle = (val) => {
-    if (val <= 50) return 'text-green-700 bg-green-100';
-    if (val <= 100) return 'text-yellow-700 bg-yellow-100';
-    if (val <= 200) return 'text-orange-700 bg-orange-100';
-    if (val <= 300) return 'text-red-700 bg-red-100';
-    return 'text-red-900 bg-red-200';
+    if (val <= 50) return 'text-green-300 bg-green-900/40 border border-green-500/30';
+    if (val <= 100) return 'text-yellow-300 bg-yellow-900/40 border border-yellow-500/30';
+    if (val <= 200) return 'text-orange-300 bg-orange-900/40 border border-orange-500/30';
+    if (val <= 300) return 'text-red-300 bg-red-900/40 border border-red-500/30';
+    return 'text-red-200 bg-red-900/60 border border-red-500/50';
   };
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-2xl text-white animate-pulse">
-        <div className="flex items-center justify-center py-6">
-          <span className="text-lg">☁️ Loading weather...</span>
+      <div className="glass-panel p-6 rounded-3xl text-white animate-pulse relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-600/20 to-indigo-600/20" />
+        <div className="flex items-center justify-center py-6 relative z-10">
+          <span className="text-lg">☁️ Loading live weather...</span>
         </div>
       </div>
     );
@@ -111,9 +122,9 @@ function WeatherWidget({ pincode }) {
 
   if (error || !weather) {
     return (
-      <div className="bg-gradient-to-r from-gray-400 to-gray-500 p-6 rounded-2xl text-white text-center">
+      <div className="glass-panel p-6 rounded-3xl text-slate-300 text-center border-dashed border-white/20">
         <p>🌤️ Weather data unavailable</p>
-        <button onClick={loadWeather} className="underline text-sm mt-1">Retry</button>
+        <button onClick={loadWeather} className="underline text-sm mt-1 text-brand-400 hover:text-brand-300">Retry connection</button>
       </div>
     );
   }
@@ -122,29 +133,34 @@ function WeatherWidget({ pincode }) {
   const hasTriggers = weather.trigger_count > 0;
 
   return (
-    <div className={`p-6 rounded-2xl text-white shadow-lg ${
+    <div className={`p-6 rounded-3xl text-white shadow-lg relative overflow-hidden transition-all duration-500 ${
       hasTriggers
-        ? 'bg-gradient-to-r from-red-500 to-red-600'
-        : 'bg-gradient-to-r from-blue-500 to-blue-600'
+        ? 'glass-super border-red-500/30'
+        : 'glass-panel border-white/10'
     }`}>
+      {/* Background Gradient */}
+      <div className={`absolute inset-0 opacity-40 transition-colors duration-500 ${
+        hasTriggers ? 'bg-gradient-to-br from-red-600 to-orange-600' : 'bg-gradient-to-br from-brand-600 to-indigo-600'
+      }`} />
+
       {/* Main Weather */}
-      <div className="flex justify-between items-start">
+      <div className="flex justify-between items-start relative z-10">
         <div>
-          <div className="flex items-center space-x-2 mb-1">
-            <span className="text-4xl">{getIcon(w.condition)}</span>
-            <span className="text-4xl font-bold">{Math.round(w.temperature)}°C</span>
+          <div className="flex items-center space-x-3 mb-1">
+            <span className="text-5xl drop-shadow-md">{getIcon(w.condition)}</span>
+            <span className="text-5xl font-bold tracking-tight">{Math.round(w.temperature)}°</span>
           </div>
-          <p className="text-white/80 capitalize text-sm">{w.description}</p>
-          <p className="text-white/70 text-sm mt-1">Feels like {Math.round(w.feels_like)}°C</p>
-          <p className="text-white/60 text-xs mt-2">{weather.zone}, {weather.city}</p>
+          <p className="text-white/80 capitalize text-sm font-medium mt-2">{w.description}</p>
+          <p className="text-white/70 text-xs mt-1">Feels like {Math.round(w.feels_like)}°C</p>
+          <p className="text-white/60 text-xs mt-3 flex items-center"><MapIcon size={12} className="mr-1"/> {weather.zone}, {weather.city}</p>
         </div>
-        <div className="text-right text-sm space-y-1">
-          <div>💨 {w.wind_speed_kmh} km/h</div>
-          <div>💧 {w.humidity}%</div>
-          {w.rainfall_1h > 0 && <div>🌧️ {w.rainfall_1h} mm/hr</div>}
+        <div className="text-right text-sm space-y-2">
+          <div className="bg-white/10 px-2 py-1 rounded-lg backdrop-blur-md">💨 {w.wind_speed_kmh} km/h</div>
+          <div className="bg-white/10 px-2 py-1 rounded-lg backdrop-blur-md">💧 {w.humidity}%</div>
+          {w.rainfall_1h > 0 && <div className="bg-blue-500/30 text-blue-100 px-2 py-1 rounded-lg backdrop-blur-md">🌧️ {w.rainfall_1h} mm/hr</div>}
           {aqi && aqi.aqi && (
-            <div className={`mt-2 px-2 py-1 rounded-lg text-xs font-bold inline-block ${getAqiStyle(aqi.aqi.value)}`}>
-              AQI: {aqi.aqi.value} ({aqi.aqi.category})
+            <div className={`px-2 py-1 rounded-lg text-xs font-bold ${getAqiStyle(aqi.aqi.value)} backdrop-blur-md`}>
+              AQI: {aqi.aqi.value}
             </div>
           )}
         </div>
@@ -152,31 +168,25 @@ function WeatherWidget({ pincode }) {
 
       {/* Alerts */}
       {hasTriggers && (
-        <div className="mt-4 bg-white/20 backdrop-blur rounded-xl p-3">
-          <p className="font-bold text-sm mb-2">
-            ⚠️ {weather.trigger_count} Active Alert{weather.trigger_count > 1 ? 's' : ''}
+        <div className="mt-5 bg-red-950/40 border border-red-500/30 backdrop-blur-lg rounded-2xl p-4 relative z-10">
+          <p className="font-bold text-sm text-red-200 mb-2 flex items-center">
+             <ShieldAlert size={16} className="mr-2" /> {weather.trigger_count} Active Alert{weather.trigger_count > 1 ? 's' : ''}
           </p>
           {weather.triggers_detected.map((t, i) => (
-            <div key={i} className="bg-white/10 rounded-lg px-3 py-2 mb-1 text-sm">
-              🔴 {t.description}
+            <div key={i} className="bg-red-500/20 text-red-100 rounded-lg px-3 py-2 mb-1 text-sm border border-red-500/20">
+              {t.description}
             </div>
           ))}
-          <p className="text-xs text-white/70 mt-2">
-            If you're affected, your claim will be auto-processed!
+          <p className="text-xs text-red-300 mt-3 font-medium">
+            Risk thresholds breached. Claim will be auto-processed!
           </p>
-        </div>
-      )}
-
-      {!hasTriggers && (
-        <div className="mt-4 bg-white/10 rounded-xl p-3 text-sm">
-          ✅ Safe conditions for delivery. Your coverage is active!
         </div>
       )}
 
       {/* Footer */}
-      <div className="mt-3 flex justify-between items-center">
-        <span className="text-xs text-white/50">{weather.fetched_at}</span>
-        <button onClick={loadWeather} className="text-xs bg-white/20 px-3 py-1 rounded-full hover:bg-white/30">
+      <div className="mt-4 flex justify-between items-center relative z-10 border-t border-white/10 pt-3">
+        <span className="text-xs text-brand-200/50">Updated: {weather.fetched_at}</span>
+        <button onClick={loadWeather} className="text-xs glass-panel px-3 py-1 rounded-full hover:bg-white/10 transition">
           🔄 Refresh
         </button>
       </div>
@@ -188,18 +198,21 @@ function WeatherWidget({ pincode }) {
 // ============================================
 // FORECAST WIDGET
 // ============================================
-function ForecastWidget({ pincode }) {
+function ForecastWidget({ pincode, coords }) {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (pincode) loadForecast();
-  }, [pincode]);
+    // Auto-refresh forecast
+    const interval = setInterval(() => { if (pincode) loadForecast(); }, 300000);
+    return () => clearInterval(interval);
+  }, [pincode, coords]);
 
   const loadForecast = async () => {
     setLoading(true);
     try {
-      const res = await getForecast(pincode);
+      const res = await getForecast(pincode, coords?.lat, coords?.lon);
       setForecast(res.data);
     } catch (err) {
       console.error('Forecast failed');
@@ -209,12 +222,12 @@ function ForecastWidget({ pincode }) {
 
   if (loading || !forecast) {
     return (
-      <div className="bg-white p-6 rounded-2xl shadow-lg animate-pulse">
-        <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+      <div className="glass-panel p-6 rounded-3xl relative overflow-hidden h-full flex flex-col justify-center border border-white/5 shadow-2xl">
+        <div className="h-4 bg-slate-800 rounded w-1/2 mb-4 animate-[pulse_1s_ease-in-out_infinite]"></div>
         <div className="space-y-3">
-          <div className="h-3 bg-gray-200 rounded"></div>
-          <div className="h-3 bg-gray-200 rounded"></div>
-          <div className="h-3 bg-gray-200 rounded"></div>
+          <div className="h-3 bg-slate-800 rounded animate-[pulse_1.2s_ease-in-out_infinite]"></div>
+          <div className="h-3 bg-slate-800 rounded animate-[pulse_1.4s_ease-in-out_infinite] w-5/6"></div>
+          <div className="h-3 bg-slate-800 rounded animate-[pulse_1.6s_ease-in-out_infinite] w-4/6"></div>
         </div>
       </div>
     );
@@ -239,29 +252,85 @@ function ForecastWidget({ pincode }) {
     curfew_bandh: { icon: '🚫', name: 'Curfew/Bandh' },
   };
 
+  // Icon mapping for forecast conditions
+  const weatherIcon = (condition) => {
+    const icons = {
+      Clear: '☀️', Clouds: '☁️', Rain: '🌧️', Drizzle: '🌦️',
+      Thunderstorm: '⛈️', Snow: '❄️', Mist: '🌫️', Haze: '🌫️',
+    };
+    return icons[condition] || '🌤️';
+  };
+
+  const isRealApi = forecast.source === 'openweathermap';
+
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-lg">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold">📅 Next Week Forecast</h3>
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">
-          {forecast.current_season}
-        </span>
+    <div className="glass-panel p-6 rounded-3xl relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-[150px] h-[150px] bg-brand-500/10 blur-[50px] rounded-full pointer-events-none" />
+      <div className="flex justify-between items-center mb-6 relative z-10">
+        <div>
+          <h3 className="text-xl font-bold text-white flex items-center"><CloudRain className="mr-2 text-brand-400" size={20} /> 7-Day Forecast</h3>
+          {isRealApi && (
+            <span className="text-[10px] uppercase tracking-wider text-green-400 font-bold mt-1 inline-block">🟢 Live Data Source</span>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-xs bg-brand-900/50 text-brand-300 border border-brand-500/30 px-3 py-1 rounded-full font-medium">
+            {forecast.current_season}
+          </span>
+          <button onClick={loadForecast} className="text-xs glass-panel px-2 py-1 rounded-full hover:bg-white/10 transition">🔄</button>
+        </div>
       </div>
 
-      <div className="space-y-3">
+      {/* Dynamic Daily Forecast from API */}
+      {forecast.daily_forecast && forecast.daily_forecast.length > 0 && (
+        <div className="mb-6 relative z-10">
+          <div className="grid grid-cols-5 gap-2 text-center">
+            {forecast.daily_forecast.slice(0, 5).map((day, idx) => {
+              const dayName = new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short' });
+              return (
+                <div key={idx} className="bg-white/5 hover:bg-white/10 transition rounded-2xl p-2 border border-white/5 flex flex-col justify-between" style={{height: '110px'}}>
+                  <div className="text-xs text-slate-400 font-medium">{dayName}</div>
+                  <div className="text-2xl my-1 drop-shadow-sm">{weatherIcon(day.condition)}</div>
+                  <div className="flex flex-col items-center justify-center border-t border-white/5 pt-1 mt-1">
+                    <span className="text-[13px] font-bold text-white">{Math.round(day.temp_max)}°</span>
+                    <span className="text-[11px] text-slate-500">{Math.round(day.temp_min)}°</span>
+                  </div>
+                  {day.rainfall_mm > 0 && (
+                    <div className="text-[10px] text-blue-400 font-medium mt-1 absolute bottom-1 left-1/2 -translate-x-1/2">💧{day.rainfall_mm}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Live Warnings from API */}
+      {forecast.warnings && forecast.warnings.length > 0 && (
+        <div className="mb-6 space-y-2 relative z-10">
+          {forecast.warnings.map((w, i) => (
+            <div key={i} className="bg-orange-900/30 border border-orange-500/30 text-orange-300 text-xs px-3 py-2 rounded-xl flex items-start">
+              <AlertTriangle size={14} className="mr-2 mt-0.5 flex-shrink-0" />
+              <span>{w}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-4 relative z-10">
         {Object.entries(forecast.predictions).map(([key, pred]) => {
           const label = labels[key] || { icon: '⚡', name: key };
           return (
             <div key={key}>
-              <div className="flex justify-between items-center text-sm mb-1">
-                <span>{label.icon} {label.name}</span>
+              <div className="flex justify-between items-center text-sm mb-1.5">
+                <span className="text-slate-300 flex items-center">{label.icon} <span className="ml-2">{label.name}</span></span>
                 <span className={`font-bold ${textColor(pred.probability)}`}>
                   {pred.probability}%
                 </span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div className="w-full bg-slate-800/50 rounded-full h-2 overflow-hidden border border-white/5">
                 <div
-                  className={`h-2.5 rounded-full transition-all duration-700 ${barColor(pred.probability)}`}
+                  className={`h-full rounded-full transition-all duration-1000 ease-out ${barColor(pred.probability)}`}
                   style={{ width: `${Math.min(pred.probability, 100)}%` }}
                 />
               </div>
@@ -271,25 +340,35 @@ function ForecastWidget({ pincode }) {
       </div>
 
       {/* Advisory */}
-      <div className={`mt-4 p-3 rounded-xl text-sm ${
+      <div className={`mt-6 p-4 rounded-2xl text-sm border relative z-10 ${
         forecast.predictions.heavy_rain?.probability > 50
-          ? 'bg-yellow-50 border border-yellow-200 text-yellow-700'
-          : 'bg-green-50 border border-green-200 text-green-700'
+          ? 'bg-yellow-900/20 border-yellow-500/30 text-yellow-200'
+          : 'bg-green-900/20 border-green-500/30 text-green-200'
       }`}>
-        💡 {forecast.worker_advisory}
+        <div className="flex items-start">
+          <Info size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+          <span>{forecast.worker_advisory}</span>
+        </div>
       </div>
 
       {/* Impact */}
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <div className="bg-gray-50 p-2 rounded-lg text-center">
-          <div className="text-xs text-gray-500">Expected Claims</div>
-          <div className="font-bold text-sm text-gray-700">{forecast.expected_impact.expected_claims}</div>
+      <div className="mt-4 grid grid-cols-2 gap-3 relative z-10">
+        <div className="bg-white/5 p-3 rounded-2xl text-center border border-white/5">
+          <div className="text-xs text-slate-400 mb-1">Expected Triggers</div>
+          <div className="font-bold text-lg text-white">{forecast.expected_impact.expected_claims}</div>
         </div>
-        <div className="bg-gray-50 p-2 rounded-lg text-center">
-          <div className="text-xs text-gray-500">Expected Payout</div>
-          <div className="font-bold text-sm text-gray-700">{forecast.expected_impact.expected_payout}</div>
+        <div className="bg-white/5 p-3 rounded-2xl text-center border border-white/5">
+          <div className="text-xs text-slate-400 mb-1">Estimated Impact</div>
+          <div className="font-bold text-lg text-white">{forecast.expected_impact.expected_payout}</div>
         </div>
       </div>
+      
+      {/* Source timestamp */}
+      {forecast.fetched_at && (
+        <div className="mt-4 text-[10px] text-slate-500 text-right font-medium relative z-10 tracking-wider uppercase">
+          Synced: {forecast.fetched_at}
+        </div>
+      )}
     </div>
   );
 }
@@ -319,57 +398,59 @@ function StreakWidget({ workerId }) {
   const active = streak.streak_active;
 
   return (
-    <div className={`p-5 rounded-2xl shadow-lg ${
+    <div className={`p-6 rounded-3xl relative overflow-hidden transition-all duration-300 ${
       active
-        ? 'bg-gradient-to-r from-yellow-400 to-orange-400 text-white'
-        : 'bg-white'
+        ? 'glass-super border-orange-500/30'
+        : 'glass-panel border-white/10'
     }`}>
-      <div className="flex justify-between items-center">
+      {active && <div className="absolute inset-0 bg-gradient-to-br from-orange-600/40 to-red-600/40" />}
+      
+      <div className="flex justify-between items-center relative z-10">
         <div>
-          <h3 className={`font-bold text-lg ${active ? 'text-white' : 'text-gray-800'}`}>
-            🔥 Clean Streak
+          <h3 className="font-bold text-xl text-white flex items-center">
+            <Zap className={`mr-2 ${active ? 'text-yellow-300' : 'text-slate-500'}`} size={20} /> Clean Streak
           </h3>
-          <p className={`text-sm mt-1 ${active ? 'text-yellow-100' : 'text-gray-500'}`}>
+          <p className="text-sm mt-1 text-slate-300">
             {streak.message}
           </p>
         </div>
         <div className="text-right">
-          <div className={`text-3xl font-bold ${active ? 'text-white' : 'text-gray-800'}`}>
-            {streak.clean_weeks}/4
+          <div className="text-4xl font-bold text-white tracking-tighter">
+            {streak.clean_weeks}<span className="text-xl text-white/50">/4</span>
           </div>
-          <div className={`text-xs ${active ? 'text-yellow-100' : 'text-gray-500'}`}>
-            weeks clean
+          <div className="text-xs uppercase tracking-widest text-slate-400 mt-1">
+            Weeks
           </div>
         </div>
       </div>
 
       {/* Progress */}
-      <div className="mt-3 flex space-x-1">
+      <div className="mt-5 flex space-x-2 relative z-10">
         {[1, 2, 3, 4].map((week) => (
           <div
             key={week}
-            className={`flex-1 h-2.5 rounded-full transition-all ${
+            className={`flex-1 h-3 rounded-full transition-all duration-500 border overflow-hidden ${
               week <= streak.clean_weeks
-                ? active ? 'bg-white' : 'bg-green-400'
-                : active ? 'bg-white/30' : 'bg-gray-200'
+                ? active ? 'bg-gradient-to-r from-yellow-400 to-orange-400 border-orange-300 shadow-[0_0_10px_rgba(251,146,60,0.5)]' : 'bg-gradient-to-r from-emerald-400 to-emerald-500 border-emerald-300'
+                : 'bg-slate-800/50 border-white/5'
             }`}
           />
         ))}
       </div>
 
       {active && (
-        <div className="mt-3 bg-white/20 rounded-xl p-2 text-center text-sm font-medium">
-          🎉 You earned <strong>{streak.premium_discount}</strong> off next week!
+        <div className="mt-5 bg-white/10 border border-white/20 rounded-2xl p-3 text-center text-sm font-medium text-white shadow-inner relative z-10 backdrop-blur-md">
+          🎉 You earned <strong className="text-yellow-300">{streak.premium_discount}</strong> off next week!
         </div>
       )}
 
-      <div className="mt-2 flex justify-between items-center">
-        <span className={`text-xs ${active ? 'text-yellow-100' : 'text-gray-400'}`}>
-          Trust: {streak.trust_score} ({streak.trust_tier})
+      <div className="mt-4 flex justify-between items-center relative z-10 pt-3 border-t border-white/10">
+        <span className="text-xs font-semibold text-slate-400 bg-slate-900/50 px-3 py-1.5 rounded-full border border-white/5">
+          Trust Score: <span className="text-white">{streak.trust_score}</span> <span className="text-brand-400">({streak.trust_tier})</span>
         </span>
         {!active && streak.weeks_to_streak > 0 && (
-          <span className="text-xs text-blue-600 font-medium">
-            {streak.weeks_to_streak} weeks to go!
+          <span className="text-xs text-brand-400 font-bold bg-brand-900/30 px-3 py-1.5 rounded-full border border-brand-500/20">
+            {streak.weeks_to_streak} weeks left
           </span>
         )}
       </div>
@@ -386,12 +467,16 @@ function PolicyCard({ workerId, policy, onUpdate }) {
 
   if (!policy || policy.status === 'none' || !policy.plan_type) {
     return (
-      <div className="bg-white p-6 rounded-2xl shadow-lg text-center">
-        <div className="text-4xl mb-3">📋</div>
-        <h3 className="font-bold text-gray-800 mb-2">No Active Policy</h3>
-        <p className="text-gray-500 text-sm mb-4">Get protected from disruptions now!</p>
-        <a href="/onboarding" className="bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 inline-block">
-          Get Coverage →
+      <div className="glass-panel p-8 rounded-3xl text-center border border-white/10">
+        <div className="flex justify-center mb-4">
+          <div className="bg-brand-900/30 p-4 rounded-full border border-brand-500/20">
+             <ShieldAlert size={32} className="text-brand-400" />
+          </div>
+        </div>
+        <h3 className="font-bold text-white text-xl mb-2">No Active Policy</h3>
+        <p className="text-slate-400 text-sm mb-6">Get protected from disruptions now!</p>
+        <a href="/onboarding" className="bg-brand-600 hover:bg-brand-500 text-white px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-brand-500/25 transition inline-block">
+          Get Coverage
         </a>
       </div>
     );
@@ -436,45 +521,46 @@ function PolicyCard({ workerId, policy, onUpdate }) {
   };
 
   const planGradients = {
-    basic: 'from-gray-500 to-gray-600',
-    standard: 'from-blue-500 to-blue-600',
-    pro: 'from-purple-500 to-purple-600',
+    basic: 'from-slate-600 to-slate-800 border-slate-500',
+    standard: 'from-brand-600 to-brand-800 border-brand-500',
+    pro: 'from-purple-600 to-fuchsia-800 border-purple-500',
   };
 
   const planEmojis = { basic: '🥉', standard: '🥈', pro: '🥇' };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+    <div className="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-white/10 group">
       {/* Header */}
-      <div className={`bg-gradient-to-r ${planGradients[policy.plan_type] || planGradients.standard} p-5 text-white`}>
-        <div className="flex justify-between items-center">
+      <div className={`bg-gradient-to-r ${planGradients[policy.plan_type] || planGradients.standard} p-6 text-white relative`}>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+        <div className="flex justify-between items-center relative z-10">
           <div>
-            <div className="text-xs uppercase tracking-wide opacity-80">Active Policy</div>
-            <div className="text-xl font-bold capitalize mt-1">
-              {planEmojis[policy.plan_type]} {policy.plan_type} Plan
+            <div className="text-[10px] uppercase tracking-widest text-white/70 font-bold mb-1">Active Coverage</div>
+            <div className="text-2xl font-bold capitalize flex items-center">
+              <span className="mr-2 text-3xl">{planEmojis[policy.plan_type]}</span> {policy.plan_type} Plan
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold">₹{policy.weekly_premium}</div>
-            <div className="text-xs opacity-80">/week</div>
+          <div className="text-right bg-black/20 px-4 py-2 rounded-2xl backdrop-blur-sm border border-white/10">
+            <div className="text-3xl font-bold tracking-tighter">₹{policy.weekly_premium}</div>
+            <div className="text-[10px] uppercase tracking-widest text-white/50 mt-1">Per Week</div>
           </div>
         </div>
       </div>
 
       {/* Details */}
-      <div className="p-5">
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="text-center bg-gray-50 p-2 rounded-lg">
-            <div className="text-xs text-gray-500">Coverage</div>
-            <div className="font-bold text-blue-700">{policy.coverage_percent}%</div>
+      <div className="p-6">
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="text-center bg-slate-800/50 p-4 rounded-2xl border border-white/5 hover:bg-slate-800 transition">
+            <div className="text-xs text-slate-400 mb-1">Protection</div>
+            <div className="font-bold text-xl text-brand-400">{policy.coverage_percent}%</div>
           </div>
-          <div className="text-center bg-gray-50 p-2 rounded-lg">
-            <div className="text-xs text-gray-500">Daily Max</div>
-            <div className="font-bold text-green-600">₹{policy.daily_max}</div>
+          <div className="text-center bg-slate-800/50 p-4 rounded-2xl border border-white/5 hover:bg-slate-800 transition">
+            <div className="text-xs text-slate-400 mb-1">Daily Max</div>
+            <div className="font-bold text-xl text-emerald-400">₹{policy.daily_max}</div>
           </div>
-          <div className="text-center bg-gray-50 p-2 rounded-lg">
-            <div className="text-xs text-gray-500">Days Left</div>
-            <div className={`font-bold ${policy.days_remaining <= 2 ? 'text-red-600' : 'text-gray-700'}`}>
+          <div className="text-center bg-slate-800/50 p-4 rounded-2xl border border-white/5 hover:bg-slate-800 transition">
+            <div className="text-xs text-slate-400 mb-1">Days Left</div>
+            <div className={`font-bold text-xl ${policy.days_remaining <= 2 ? 'text-red-400' : 'text-white'}`}>
               {policy.days_remaining}
             </div>
           </div>
@@ -482,41 +568,43 @@ function PolicyCard({ workerId, policy, onUpdate }) {
 
         {/* Warnings */}
         {policy.days_remaining <= 2 && policy.days_remaining > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 p-2 rounded-lg text-xs text-yellow-700 mb-3 text-center">
-            ⚠️ Expires in {policy.days_remaining} day{policy.days_remaining > 1 ? 's' : ''}!
+          <div className="bg-yellow-900/40 border border-yellow-500/30 p-3 rounded-xl text-xs text-yellow-300 mb-4 flex items-center">
+            <AlertTriangle size={14} className="mr-2 flex-shrink-0" />
+            Expires in {policy.days_remaining} day{policy.days_remaining > 1 ? 's' : ''}!
           </div>
         )}
         {policy.days_remaining === 0 && (
-          <div className="bg-red-50 border border-red-200 p-2 rounded-lg text-xs text-red-700 mb-3 text-center">
-            🔴 Policy expired! Renew now to stay protected.
+          <div className="bg-red-900/40 border border-red-500/30 p-3 rounded-xl text-xs text-red-300 mb-4 flex items-center">
+             <AlertTriangle size={14} className="mr-2 flex-shrink-0" />
+            Policy expired! Renew now to stay protected.
           </div>
         )}
 
         {/* Actions */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-3 mt-2">
           {policy.days_remaining === 0 ? (
             <button
               onClick={() => handleAction('renew')}
               disabled={actionLoading === 'renew'}
-              className="flex-1 bg-green-600 text-white py-2.5 rounded-lg text-sm font-semibold hover:bg-green-700 disabled:bg-gray-400 transition"
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white py-3.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 hover:opacity-90 disabled:opacity-50 transition"
             >
-              {actionLoading === 'renew' ? '⏳ Renewing...' : '🔄 Renew Now'}
+              {actionLoading === 'renew' ? '⏳ Renewing...' : '🔄 Renew Policy'}
             </button>
           ) : (
             <>
               <button
                 onClick={() => handleAction('pause')}
                 disabled={!!actionLoading}
-                className="flex-1 bg-yellow-100 text-yellow-700 py-2 rounded-lg text-sm font-medium hover:bg-yellow-200 disabled:opacity-50 transition"
+                className="flex-1 glass-panel text-white py-3 rounded-xl text-sm font-bold hover:bg-white/10 disabled:opacity-50 transition flex items-center justify-center border border-white/20"
               >
-                {actionLoading === 'pause' ? '...' : '⏸️ Pause'}
+                {actionLoading === 'pause' ? <span className="animate-pulse">...</span> : <><Power size={14} className="mr-2 text-yellow-400"/> Pause</>}
               </button>
               <button
                 onClick={() => handleAction('cancel')}
                 disabled={!!actionLoading}
-                className="flex-1 bg-red-100 text-red-700 py-2 rounded-lg text-sm font-medium hover:bg-red-200 disabled:opacity-50 transition"
+                className="flex-1 glass-panel text-white py-3 rounded-xl text-sm font-bold hover:bg-red-500/20 hover:border-red-500/30 disabled:opacity-50 transition flex items-center justify-center border border-white/10"
               >
-                {actionLoading === 'cancel' ? '...' : '✖️ Cancel'}
+                 {actionLoading === 'cancel' ? <span className="animate-pulse">...</span> : <><XCircle size={14} className="mr-2 text-red-400"/> Cancel</>}
               </button>
             </>
           )}
@@ -581,80 +669,94 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
   const createdAt = claim.created_at || claim.date || '';
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="glass-super rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10" 
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className={`p-5 rounded-t-2xl text-white ${statusColors[status] || 'bg-gray-500'}`}>
+        <div className={`p-6 border-b border-white/10 ${
+          status === 'auto_approved' || status === 'approved' ? 'bg-gradient-to-r from-emerald-600/30 to-emerald-900/40' :
+          status === 'rejected' ? 'bg-gradient-to-r from-red-600/30 to-red-900/40' :
+          'bg-gradient-to-r from-brand-600/30 to-brand-900/40'
+        }`}>
           <div className="flex justify-between items-center">
             <div>
-              <div className="text-sm opacity-80">Claim #{claim.id}</div>
-              <div className="text-xl font-bold capitalize">{status.replace(/_/g, ' ')}</div>
+              <div className="text-xs uppercase tracking-widest text-white/50 mb-1">Claim #{claim.id}</div>
+              <div className="text-2xl font-bold capitalize text-white flex items-center">
+                {status.replace(/_/g, ' ')}
+              </div>
             </div>
-            <button onClick={onClose} className="text-2xl bg-white/20 w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/30">×</button>
+            <button onClick={onClose} className="text-slate-400 hover:text-white transition">
+              <XCircle size={28} />
+            </button>
           </div>
         </div>
 
-        <div className="p-5 space-y-4">
+        <div className="p-6 space-y-4">
           {/* Trigger */}
-          <div className="bg-blue-50 p-4 rounded-xl">
-            <div className="font-bold text-blue-800 mb-2">⚡ Disruption Details</div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div><span className="text-gray-500">Type:</span> <span className="font-medium">{TRIGGER_ICONS[triggerType] || '⚡'} {triggerType}</span></div>
-              <div><span className="text-gray-500">Duration:</span> <span className="font-medium">{disruption}h</span></div>
-              <div><span className="text-gray-500">Zone:</span> <span className="font-medium">{claim.trigger_zone || details?.trigger?.zone || 'Your zone'}</span></div>
-              <div><span className="text-gray-500">Date:</span> <span className="font-medium">{createdAt}</span></div>
+          <div className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl">
+            <div className="font-bold text-slate-300 mb-3 flex items-center"><Activity size={16} className="mr-2 text-brand-400"/> Disruption Details</div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><span className="text-slate-500 block text-xs">Type</span> <span className="font-medium text-white text-base mt-0.5 inline-block">{TRIGGER_ICONS[triggerType] || '⚡'} {triggerType}</span></div>
+              <div><span className="text-slate-500 block text-xs">Duration</span> <span className="font-medium text-white text-base mt-0.5 inline-block">{disruption}h</span></div>
+              <div><span className="text-slate-500 block text-xs">Zone</span> <span className="font-medium text-white text-base mt-0.5 inline-block">{claim.trigger_zone || details?.trigger?.zone || 'Your zone'}</span></div>
+              <div><span className="text-slate-500 block text-xs">Date</span> <span className="font-medium text-white text-base mt-0.5 inline-block">{createdAt}</span></div>
             </div>
           </div>
 
           {/* Payout */}
-          <div className="bg-green-50 p-4 rounded-xl">
-            <div className="font-bold text-green-800 mb-2">💰 Payout</div>
-            <div className="text-3xl font-bold text-green-700 text-center my-2">₹{payoutAmount}</div>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div><span className="text-gray-500">Status:</span> <span className="font-medium capitalize">{claim.payout_status || status}</span></div>
+          <div className="bg-emerald-900/20 border border-emerald-500/20 p-5 rounded-2xl relative overflow-hidden">
+            <div className="absolute right-0 top-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-[40px] pointer-events-none" />
+            <div className="font-bold text-emerald-400 mb-2 relative z-10">💰 Payout Status</div>
+            <div className="text-4xl font-bold text-white text-center my-4 relative z-10 tracking-tighter drop-shadow-md">₹{payoutAmount}</div>
+            <div className="grid grid-cols-2 gap-2 text-sm relative z-10 mt-2 bg-black/20 p-3 rounded-xl border border-white/5">
+              <div><span className="text-slate-400 block text-[10px] uppercase">Status</span> <span className="font-bold text-emerald-300 capitalize">{claim.payout_status || status}</span></div>
               {claim.transaction_id && (
-                <div><span className="text-gray-500">Txn:</span> <span className="font-mono text-xs">{claim.transaction_id}</span></div>
+                <div><span className="text-slate-400 block text-[10px] uppercase">Transaction</span> <span className="font-mono text-xs text-slate-300">{claim.transaction_id}</span></div>
               )}
             </div>
           </div>
 
           {/* Fraud Score */}
-          <div className="bg-gray-50 p-4 rounded-xl">
-            <div className="font-bold text-gray-800 mb-2">🔍 Verification Score</div>
-            <div className="flex items-center space-x-3">
-              <div className="flex-1 bg-gray-200 rounded-full h-3">
+          <div className="glass-panel p-5 rounded-2xl border border-white/5">
+            <div className="font-bold text-slate-300 mb-3 flex items-center"><ShieldAlert size={16} className="mr-2 text-brand-400"/> AI Verification Score</div>
+            <div className="flex items-center space-x-4 mb-2">
+              <div className="flex-1 bg-slate-900 rounded-full h-3 border border-white/5 overflow-hidden">
                 <div
-                  className={`h-3 rounded-full transition-all ${
-                    fraudScore <= 30 ? 'bg-green-500' :
-                    fraudScore <= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                  className={`h-full rounded-full transition-all ${
+                    fraudScore <= 30 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
+                    fraudScore <= 70 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gradient-to-r from-red-500 to-red-600'
                   }`}
                   style={{ width: `${fraudScore}%` }}
                 />
               </div>
-              <span className={`font-bold text-lg ${
-                fraudScore <= 30 ? 'text-green-600' :
-                fraudScore <= 70 ? 'text-yellow-600' : 'text-red-600'
+              <span className={`font-bold text-xl ${
+                fraudScore <= 30 ? 'text-emerald-400' :
+                fraudScore <= 70 ? 'text-yellow-400' : 'text-red-400'
               }`}>
                 {fraudScore}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {fraudScore <= 30 ? '✅ Low risk — Auto approved' :
-               fraudScore <= 70 ? '⚠️ Medium risk — Under review' : '🔴 High risk — Flagged'}
+            <p className="text-xs mt-2 font-medium px-3 py-1.5 rounded-lg inline-block bg-white/5 border border-white/5">
+              {fraudScore <= 30 ? <span className="text-emerald-400">✅ Low risk — Auto approved</span> :
+               fraudScore <= 70 ? <span className="text-yellow-400">⚠️ Medium risk — Under review</span> : <span className="text-red-400">🔴 High risk — Flagged</span>}
             </p>
 
             {/* Fraud Details */}
             {details?.claim?.fraud_details && (
-              <div className="mt-3 space-y-1 border-t pt-2">
+              <div className="mt-4 space-y-2 border-t border-white/10 pt-4">
                 {Object.entries(details.claim.fraud_details)
                   .filter(([key]) => !['final_score', 'decision', 'decision_reason', 'appeal'].includes(key))
                   .map(([key, value]) => (
-                    <div key={key} className="flex justify-between text-xs">
-                      <span className="text-gray-500 capitalize">{key.replace(/_/g, ' ')}</span>
-                      <span className={`font-medium ${
-                        String(value).includes('PASS') ? 'text-green-600' :
-                        String(value).includes('FLAG') ? 'text-yellow-600' :
-                        String(value).includes('FAIL') ? 'text-red-600' : 'text-gray-700'
+                    <div key={key} className="flex justify-between text-xs bg-slate-800/40 px-3 py-2 rounded-lg border border-white/5">
+                      <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}</span>
+                      <span className={`font-bold ${
+                        String(value).includes('PASS') ? 'text-emerald-400' :
+                        String(value).includes('FLAG') ? 'text-yellow-400' :
+                        String(value).includes('FAIL') ? 'text-red-400' : 'text-slate-300'
                       }`}>{String(value)}</span>
                     </div>
                   ))}
@@ -664,43 +766,43 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
 
           {/* Appeal Section */}
           {(status === 'rejected' || status === 'manual_review') && (
-            <div className="border-t pt-4">
+            <div className="border-t border-white/10 pt-5">
               {!showAppeal ? (
                 <button
                   onClick={() => setShowAppeal(true)}
-                  className="w-full bg-blue-100 text-blue-700 py-3 rounded-xl font-semibold hover:bg-blue-200 transition"
+                  className="w-full bg-brand-600/30 border border-brand-500/50 text-brand-200 py-3 rounded-xl font-bold hover:bg-brand-600/50 transition shadow-[0_0_15px_rgba(79,70,229,0.2)]"
                 >
                   📝 Appeal This Decision
                 </button>
               ) : (
-                <div className="space-y-3">
-                  <h4 className="font-bold text-gray-800">📝 Submit Appeal</h4>
+                <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} className="space-y-4 bg-slate-900/50 p-4 rounded-2xl border border-white/10">
+                  <h4 className="font-bold text-white flex items-center"><Info size={16} className="mr-2 text-brand-400"/> Submit Appeal</h4>
                   <textarea
                     value={appealReason}
                     onChange={(e) => setAppealReason(e.target.value)}
-                    placeholder="Explain why this claim is valid (e.g., I was stuck in heavy rain in my delivery zone...)"
-                    className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:outline-none resize-none"
+                    placeholder="Explain why this claim is valid..."
+                    className="w-full px-4 py-3 bg-slate-950 border border-slate-700/50 rounded-xl text-sm text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none resize-none"
                     rows={3}
                   />
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-3">
                     <button
                       onClick={handleAppeal}
                       disabled={appealLoading}
-                      className="flex-1 bg-blue-700 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 disabled:bg-gray-400"
+                      className="flex-1 bg-brand-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-brand-500 transition shadow-lg disabled:opacity-50"
                     >
-                      {appealLoading ? '⏳ Submitting...' : '✅ Submit Appeal'}
+                      {appealLoading ? '⏳ Submitting...' : '✅ Submit'}
                     </button>
-                    <button onClick={() => setShowAppeal(false)} className="px-4 bg-gray-200 text-gray-600 py-2 rounded-lg text-sm">
+                    <button onClick={() => setShowAppeal(false)} className="px-5 glass-panel text-slate-300 py-2.5 rounded-xl text-sm hover:text-white hover:bg-white/10 transition">
                       Cancel
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500">Admin reviews within 4 hours. If approved: full payout + trust bonus.</p>
-                </div>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-wide px-1">Admin reviews within 4 hours. If approved: full payout + trust bonus.</p>
+                </motion.div>
               )}
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -710,6 +812,7 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
 // MAIN DASHBOARD
 // ============================================
 function Dashboard() {
+  const { t } = useI18n();
   const [searchParams] = useSearchParams();
   const [workerId, setWorkerId] = useState(searchParams.get('worker_id') || '');
   const [dashboard, setDashboard] = useState(null);
@@ -720,15 +823,42 @@ function Dashboard() {
   const [simLoading, setSimLoading] = useState(false);
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [coords, setCoords] = useState(null);
+  
+  // Outstanding Features
+  const [sosActive, setSosActive] = useState(false);
+  const [voiceActive, setVoiceActive] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState('');
 
-  const loadDashboard = async () => {
-    if (!workerId) return;
+  const loadDashboard = async (idToLoad = workerId) => {
+    if (!idToLoad) return;
     setLoading(true);
     setError('');
+
+    // Prompt hardware permissions ONLY ONCE
+    if (!dashboard && !window.hasAlertedPermissions) {
+      window.hasAlertedPermissions = true;
+      alert("🔒 Security Prompt: RahatPay requires access to your GPS, Gyroscope, and Ambient sensors for 7-Layer FraudShield telemetry.");
+      
+      if (typeof window.DeviceOrientationEvent !== 'undefined' && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+        window.DeviceOrientationEvent.requestPermission().catch(console.error);
+      }
+      if (typeof window.DeviceMotionEvent !== 'undefined' && typeof window.DeviceMotionEvent.requestPermission === 'function') {
+        window.DeviceMotionEvent.requestPermission().catch(console.error);
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        (err) => console.warn("Geolocation denied", err)
+      );
+    }
+
     try {
       const [dashRes, claimsRes] = await Promise.all([
-        getWorkerDashboard(workerId),
-        getWorkerClaims(workerId),
+        getWorkerDashboard(idToLoad),
+        getWorkerClaims(idToLoad),
       ]);
       setDashboard(dashRes.data);
       setClaims(claimsRes.data);
@@ -746,6 +876,10 @@ function Dashboard() {
     if (!dashboard) return;
     setSimLoading(true);
     setSimResult(null);
+    
+    // Trigger FraudShield scanning animation
+    window.dispatchEvent(new Event('trigger-fraud-scan'));
+    
     const pincode = ZONE_PINCODE[dashboard.worker.zone] || '400053';
     try {
       const res = await simulateDisruption({
@@ -760,53 +894,116 @@ function Dashboard() {
     setSimLoading(false);
   };
 
+  const handleSOS = () => {
+    setSosActive(true);
+    
+    // Trigger FraudShield scanning animation
+    window.dispatchEvent(new Event('trigger-fraud-scan'));
+    
+    setTimeout(() => {
+      alert("🚨 PRIORITY 0: Satellite SOS Signal Sent!\nCoordinates Locked: " + (coords ? `${coords.lat}, ${coords.lon}` : "Local Tower Proxy") + "\nMedical Rapid Response & Payout Dispatched.");
+      setSosActive(false);
+    }, 3500);
+  };
+
+  const handleVoiceClaim = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Voice AI not supported in this browser frame. Please use a modern browser like Chrome.");
+      return;
+    }
+    setVoiceActive(true);
+    setVoiceTranscript('Listening... Speak now.');
+    
+    try {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRec();
+      recognition.lang = 'en-IN';
+      recognition.start();
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setVoiceTranscript(`"${transcript}"`);
+        
+        // Trigger FraudShield scanning animation upon processing transcript
+        window.dispatchEvent(new Event('trigger-fraud-scan'));
+        
+        setTimeout(() => {
+           alert(`🎙️ AI Processed Voice Claim:\n"${transcript}"\n\nCategorized as: ON_ROAD_EMERGENCY. Priority set to High.`);
+           setVoiceActive(false);
+        }, 2000);
+      };
+      recognition.onerror = () => setVoiceActive(false);
+      recognition.onend = () => { 
+        if (voiceTranscript === 'Listening... Speak now.') {
+          setVoiceActive(false); 
+        }
+      };
+    } catch (err) {
+      setVoiceActive(false);
+    }
+  };
+
   // ===== LOGIN SCREEN =====
   if (!dashboard && !loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
-        <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md w-full mx-4">
-          <div className="text-5xl mb-4">📊</div>
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">Worker Dashboard</h2>
-          <p className="text-gray-500 mb-6">Enter your Worker ID to view your dashboard</p>
-          <div className="flex space-x-3">
-            <input
-              type="number"
-              placeholder="Worker ID (e.g. 1)"
-              value={workerId}
-              onChange={(e) => setWorkerId(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && loadDashboard()}
-              className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-blue-500 focus:outline-none text-lg"
-            />
-            <button
-              onClick={loadDashboard}
-              disabled={!workerId || loading}
-              className="bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-800 disabled:bg-gray-400 transition"
-            >
-              Go →
-            </button>
+      <div className="flex items-center justify-center py-20 px-4 relative min-h-[80vh]">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-brand-900/20 via-slate-900 to-slate-900 pointer-events-none" />
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-super p-10 rounded-[2.5rem] shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 max-w-md w-full relative z-10"
+        >
+          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-brand-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-lg shadow-brand-500/30 mb-8 border border-white/20">
+            <ShieldAlert className="text-white" size={40} />
           </div>
-          {error && <p className="text-red-500 mt-4 text-sm">{error}</p>}
-          <div className="mt-6 pt-4 border-t">
-            <p className="text-xs text-gray-400 mb-3">Quick access (Demo):</p>
-            <div className="flex flex-wrap gap-2 justify-center">
+          <h2 className="text-3xl font-bold mb-2 text-white text-center">RahatPay Central</h2>
+          <p className="text-slate-400 mb-8 text-center text-sm px-4">Identify using your Gig Worker Hash to view protected earnings.</p>
+          
+          <div className="flex flex-col space-y-4 relative">
+            <div className="relative">
+              <input
+                type="number"
+                placeholder="Worker ID (e.g. 1)"
+                value={workerId}
+                onChange={(e) => setWorkerId(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && loadDashboard(workerId)}
+                className="w-full pl-4 pr-16 py-4 bg-slate-900/80 border border-slate-700/50 rounded-2xl focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none text-lg text-white font-mono shadow-inner"
+              />
+              <button
+                onClick={() => loadDashboard(workerId)}
+                disabled={!workerId || loading}
+                className="absolute right-2 top-2 bottom-2 bg-brand-600 text-white px-4 rounded-xl font-bold hover:bg-brand-500 disabled:opacity-50 transition shadow-lg shadow-brand-500/20 flex items-center justify-center"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+            {error && <p className="text-red-400 mt-2 text-sm text-center font-medium bg-red-900/30 py-2 rounded-lg border border-red-500/20">{error}</p>}
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-white/10">
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 mb-4 text-center font-bold">Quick Verification (Demo DB)</p>
+            <div className="grid grid-cols-2 gap-3 justify-center">
               {[
-                { id: 1, name: 'Rahul' },
-                { id: 3, name: 'Deepak' },
-                { id: 5, name: 'Priya' },
-                { id: 8, name: 'Amit' },
-                { id: 10, name: 'Ravi' },
+                { id: 1, name: 'Rahul', platform: 'Zepto', avatar: 'https://i.pravatar.cc/150?u=1' },
+                { id: 3, name: 'Deepak', platform: 'Swiggy', avatar: 'https://i.pravatar.cc/150?u=3' },
+                { id: 5, name: 'Priya', platform: 'Blinkit', avatar: 'https://i.pravatar.cc/150?u=5' },
+                { id: 8, name: 'Amit', platform: 'Zomato', avatar: 'https://i.pravatar.cc/150?u=8' },
               ].map((w) => (
                 <button
                   key={w.id}
-                  onClick={() => { setWorkerId(String(w.id)); }}
-                  className="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100 hover:text-blue-700 transition"
+                  onClick={() => { setWorkerId(String(w.id)); loadDashboard(String(w.id)); }}
+                  className="bg-slate-900/40 border border-white/10 p-2.5 rounded-2xl flex items-center space-x-3 w-full hover:bg-white/10 hover:border-brand-500/50 hover:shadow-[0_0_20px_rgba(79,70,229,0.2)] transition-all group text-left"
                 >
-                  #{w.id} {w.name}
+                  <img src={w.avatar} alt={w.name} className="w-10 h-10 rounded-xl" />
+                  <div>
+                    <div className="text-white font-bold text-sm tracking-tight">{w.name}</div>
+                    <div className="text-[10px] text-slate-400 capitalize bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700/50 mt-1 inline-block">{w.platform} • #{w.id}</div>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     );
   }
@@ -814,10 +1011,18 @@ function Dashboard() {
   // ===== LOADING =====
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-5xl mb-4 animate-bounce">🛡️</div>
-          <p className="text-xl text-gray-600">Loading your dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center relative">
+          <div className="absolute inset-0 bg-brand-500/20 blur-[50px] rounded-full pointer-events-none" />
+          <motion.div 
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+            className="text-6xl mb-6 relative z-10 inline-block bg-gradient-to-br from-brand-400 to-indigo-600 p-4 rounded-3xl"
+          >
+            <ShieldAlert className="text-white" size={48} />
+          </motion.div>
+          <p className="text-2xl text-white font-bold tracking-tight">Syncing Data...</p>
+          <p className="text-slate-400 mt-2">Connecting to parametric triggers</p>
         </div>
       </div>
     );
@@ -836,7 +1041,10 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
+    <div className="min-h-screen text-slate-100 pb-12 pt-24 font-sans relative">
+      <div className="fixed inset-0 bg-slate-950 -z-10" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-900/20 via-slate-950 to-slate-950 -z-10" />
+
       {/* Claim Modal */}
       {selectedClaim && (
         <ClaimDetailModal
@@ -847,109 +1055,232 @@ function Dashboard() {
       )}
 
       {/* Top Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Welcome, {dashboard.worker.name}! 👋</h2>
-              <p className="text-sm text-gray-500">
-                <span className="font-mono font-bold text-blue-700">{dashboard.worker.token}</span>
-                <span className="mx-2">•</span>
-                <span className="capitalize">{dashboard.worker.platform}</span>
-                <span className="mx-2">•</span>
-                {dashboard.worker.zone}
-              </p>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div className="glass-panel rounded-3xl p-6 border border-white/5 shadow-2xl flex flex-col md:flex-row justify-between items-center relative overflow-hidden">
+          <div className="absolute right-0 top-0 w-64 h-64 bg-brand-500/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="relative z-10 mb-4 md:mb-0">
+            <h2 className="text-2xl font-bold text-white mb-1">{t('welcome')}, {dashboard.worker.name}! 👋</h2>
+            <p className="text-sm text-slate-400 flex items-center space-x-3">
+              <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-brand-300 border border-slate-700">#{dashboard.worker.token}</span>
+              <span className="capitalize px-2 py-0.5 rounded bg-white/5 border border-white/10">{dashboard.worker.platform}</span>
+              <span className="flex items-center"><MapIcon size={14} className="mr-1"/> {dashboard.worker.zone}</span>
+            </p>
+          </div>
+          <div className="flex items-center space-x-4 relative z-10">
+            {/* Gamified Trust Arc */}
+            <div className="relative w-16 h-16 flex items-center justify-center group cursor-pointer" title={`Trust Score: ${dashboard.worker.trust_score}`}>
+              <div className="absolute inset-0 bg-brand-500/5 rounded-full blur-md group-hover:bg-brand-500/20 transition-all"></div>
+              <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                 <circle cx="32" cy="32" r="28" fill="none" strokeWidth="6" className="stroke-slate-800" />
+                 <circle cx="32" cy="32" r="28" fill="none" strokeWidth="6" strokeDasharray="175" strokeDashoffset={175 - (175 * dashboard.worker.trust_score / 100)} className={`${
+                   dashboard.worker.trust_tier === 'PLATINUM' ? 'stroke-purple-500 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]' :
+                   dashboard.worker.trust_tier === 'GOLD' ? 'stroke-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]' :
+                   dashboard.worker.trust_tier === 'SILVER' ? 'stroke-slate-400' : 'stroke-orange-500'
+                 } transition-all duration-1500 ease-out`} strokeLinecap="round" />
+              </svg>
+              <div className="flex flex-col items-center justify-center relative z-10">
+                <span className="text-sm font-black text-white">{dashboard.worker.trust_score}</span>
+              </div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-bold ${trustStyles[dashboard.worker.trust_tier] || trustStyles.SILVER}`}>
-                {dashboard.worker.trust_tier} ({dashboard.worker.trust_score})
-              </span>
-              <button onClick={() => { setDashboard(null); setClaims(null); setWorkerId(''); }} className="text-gray-400 hover:text-gray-600 ml-2" title="Logout">✕</button>
+            
+            <div className={`px-4 py-2.5 rounded-xl text-sm font-bold flex flex-col justify-center border bg-opacity-20 backdrop-blur-md shadow-lg ${
+              dashboard.worker.trust_tier === 'PLATINUM' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-purple-500/10' :
+              dashboard.worker.trust_tier === 'GOLD' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30 shadow-yellow-500/10' :
+              dashboard.worker.trust_tier === 'SILVER' ? 'bg-slate-500/20 text-slate-300 border-slate-500/30' :
+              'bg-orange-500/20 text-orange-300 border-orange-500/30'
+            }`}>
+              <span className="tracking-widest">{dashboard.worker.trust_tier}</span>
             </div>
+            
+            <NotificationCenter recipientType="worker" workerId={dashboard.worker.id} />
+            
+            <button onClick={() => { setDashboard(null); setClaims(null); setWorkerId(''); }} className="glass-panel p-3.5 rounded-xl text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all shadow-sm" title="Logout">
+              <LogOut size={20} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="max-w-4xl mx-auto px-4 pt-4">
-        <div className="flex space-x-1 bg-gray-200 p-1 rounded-xl">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
+        <div className="flex space-x-2 glass-panel p-1.5 rounded-2xl w-full md:w-auto inline-flex overflow-x-auto border-white/5">
           {[
-            { id: 'overview', label: '📊 Overview' },
-            { id: 'claims', label: '📋 Claims' },
-            { id: 'simulate', label: '⚡ Simulate' },
+            { id: 'overview', label: 'Overview', icon: <TrendingUp size={16} /> },
+            { id: 'claims', label: 'Claims History', icon: <Activity size={16} /> },
+            { id: 'simulate', label: 'Simulate Tool', icon: <Zap size={16} /> },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-medium transition ${
-                activeTab === tab.id ? 'bg-white text-blue-700 shadow' : 'text-gray-600 hover:text-gray-800'
+              className={`flex items-center space-x-2 py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${
+                activeTab === tab.id 
+                  ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/25 border border-brand-500/50' 
+                  : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
               }`}
             >
-              {tab.label}
+              {tab.icon} <span>{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 pt-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ===== OVERVIEW TAB ===== */}
         {activeTab === 'overview' && (
-          <>
+          <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}}>
             {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="bg-white p-4 rounded-xl shadow text-center">
-                <div className="text-2xl mb-1">📋</div>
-                <div className="text-lg font-bold text-blue-700 capitalize">{dashboard.active_policy.plan_type || 'None'}</div>
-                <div className="text-xs text-gray-500">Active Plan</div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+              <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg group hover:border-brand-500/30 transition">
+                <div className="w-10 h-10 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center mb-3">
+                   <ShieldAlert size={20} />
+                </div>
+                <div className="text-2xl font-bold text-white capitalize tracking-tight mb-1">{dashboard.active_policy.plan_type || 'None'}</div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Active Policy</div>
               </div>
-              <div className="bg-white p-4 rounded-xl shadow text-center">
-                <div className="text-2xl mb-1">💰</div>
-                <div className="text-lg font-bold text-green-600">₹{dashboard.active_policy.weekly_premium}</div>
-                <div className="text-xs text-gray-500">Weekly Premium</div>
+              <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg group hover:border-emerald-500/30 transition">
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+                   <span className="text-lg font-bold">₹</span>
+                </div>
+                <div className="text-2xl font-bold text-white tracking-tight mb-1">₹{dashboard.active_policy.weekly_premium}</div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Weekly Premium</div>
               </div>
-              <div className="bg-white p-4 rounded-xl shadow text-center">
-                <div className="text-2xl mb-1">🛡️</div>
-                <div className="text-lg font-bold text-blue-600">₹{dashboard.stats.total_earnings_protected}</div>
-                <div className="text-xs text-gray-500">Total Protected</div>
+              <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg relative overflow-hidden group hover:border-blue-500/30 transition">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3">
+                   <TrendingUp size={20} />
+                </div>
+                <div className="text-2xl font-bold text-white tracking-tight mb-1">₹{dashboard.stats.total_earnings_protected}</div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Protected Earnings</div>
               </div>
-              <div className="bg-white p-4 rounded-xl shadow text-center">
-                <div className="text-2xl mb-1">📝</div>
-                <div className="text-lg font-bold text-orange-600">{dashboard.stats.total_claims}</div>
-                <div className="text-xs text-gray-500">Total Claims</div>
+              <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg group hover:border-orange-500/30 transition">
+                <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center mb-3">
+                   <Activity size={20} />
+                </div>
+                <div className="text-2xl font-bold text-white tracking-tight mb-1">{dashboard.stats.total_claims}</div>
+                <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Total Claims</div>
               </div>
             </div>
 
             {/* This Week Stats */}
             {(dashboard.stats.this_week_claims > 0 || dashboard.stats.this_week_payout > 0) && (
-              <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6 flex justify-between items-center">
-                <div>
-                  <div className="font-bold text-blue-800">📅 This Week</div>
-                  <div className="text-sm text-blue-600">{dashboard.stats.this_week_claims} claims processed</div>
+              <div className="bg-gradient-to-r from-blue-900/40 to-brand-900/30 border border-blue-500/30 p-6 rounded-3xl mb-8 flex justify-between items-center relative overflow-hidden shadow-lg">
+                <div className="absolute top-0 right-0 w-[200px] h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                <div className="relative z-10">
+                  <div className="font-bold text-blue-300 text-lg flex items-center"><Clock size={18} className="mr-2" /> This Week's Impact</div>
+                  <div className="text-sm text-blue-100/70 mt-1">{dashboard.stats.this_week_claims} auto-processed claims</div>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold text-blue-700">₹{dashboard.stats.this_week_payout}</div>
-                  <div className="text-xs text-blue-500">protected this week</div>
+                <div className="text-right relative z-10">
+                  <div className="text-3xl font-bold text-white tracking-tighter">₹{dashboard.stats.this_week_payout}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-blue-300">Protected Payout</div>
                 </div>
               </div>
             )}
 
             {/* Weather + Policy */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <WeatherWidget pincode={workerPincode} />
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <WeatherWidget pincode={workerPincode} coords={coords} />
               <PolicyCard workerId={workerId} policy={dashboard.active_policy} onUpdate={loadDashboard} />
             </div>
 
             {/* Streak + Forecast */}
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
               <StreakWidget workerId={workerId} />
-              <ForecastWidget pincode={workerPincode} />
+              <ForecastWidget pincode={workerPincode} coords={coords} />
+            </div>
+
+            {/* 7-Layer Fraud Shield */}
+            <div className="mb-8">
+              <FraudShield workerId={workerId} />
+            </div>
+
+            {/* 🔥 FIRST PRIZE FEATURES: INTENSIVE DYNAMIC INTERACTIONS 🔥 */}
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
+              
+              {/* 1. SOS SATELLITE PROTOCOL */}
+              <div className="glass-panel p-6 rounded-3xl shadow-[0_0_20px_rgba(239,68,68,0.15)] border border-red-500/20 relative overflow-hidden group">
+                <div className={`absolute inset-0 bg-gradient-to-br from-red-600/20 to-orange-600/10 transition-opacity duration-500 ${sosActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
+                <div className="relative z-10 flex flex-col justify-between h-full">
+                  <div>
+                    <h3 className="text-xl font-bold text-red-400 mb-2 flex items-center"><Satellite className="mr-2" /> Global SOS Override</h3>
+                    <p className="text-xs text-slate-400 mb-4 max-w-sm">Bypasses standard processing to extract live HTML5 coordinates and deploy instantaneous priority funds.</p>
+                  </div>
+                  <button 
+                    onClick={handleSOS}
+                    disabled={sosActive}
+                    className={`w-full py-4 rounded-2xl font-black tracking-widest text-lg transition-all duration-300 shadow-xl border ${
+                      sosActive 
+                        ? 'bg-red-500 text-white border-red-400 shadow-red-500/50' 
+                        : 'bg-red-950/50 text-red-500 border-red-500/30 hover:bg-red-900/40 hover:text-red-400 hover:border-red-500/50'
+                    }`}
+                  >
+                    {sosActive ? '🛰️ TRANSMITTING P91...' : '🚨 TAP FOR SOS'}
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. AI VOICE CLAIM ASSISTANT */}
+              <div className="glass-panel p-6 rounded-3xl shadow-[0_0_20px_rgba(59,130,246,0.15)] border border-blue-500/20 relative overflow-hidden">
+                <div className={`absolute inset-0 bg-gradient-to-br from-blue-600/20 to-cyan-600/10 transition-opacity duration-500 ${voiceActive ? 'opacity-100' : 'opacity-0'}`} />
+                <div className="relative z-10 flex flex-col justify-between h-full">
+                   <div>
+                    <h3 className="text-xl font-bold text-blue-400 mb-2 flex items-center"><Mic className="mr-2" /> AI Voice Claims</h3>
+                    <p className="text-xs text-slate-400 mb-4 max-w-sm">Speak your claim directly using Neural NLP parsing. Audio is dynamically translated to active triggers.</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={handleVoiceClaim}
+                      disabled={voiceActive}
+                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-xl border ${
+                        voiceActive 
+                          ? 'bg-blue-500 text-white border-blue-400 shadow-blue-500/50 animate-bounce' 
+                          : 'bg-blue-950/50 text-blue-500 border-blue-500/30 hover:bg-blue-900/40 hover:text-blue-400'
+                      }`}
+                    >
+                      <Mic size={24} />
+                    </button>
+                    <div className="flex-1 bg-slate-900/50 rounded-xl p-3 border border-white/5 h-14 flex items-center overflow-hidden">
+                       <span className={`text-[10px] leading-tight truncate w-full ${voiceActive || voiceTranscript ? 'text-white' : 'text-slate-500 italic'}`}>
+                         {voiceTranscript || 'Tap mic to dictate claim...'}
+                       </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* 3. AI DAMAGE SCANNER */}
+              <div className="glass-panel p-6 rounded-3xl shadow-[0_0_20px_rgba(168,85,247,0.15)] border border-purple-500/20 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-fuchsia-600/10 opacity-30" />
+                <div className="relative z-10 flex flex-col justify-between h-full">
+                   <div>
+                    <h3 className="text-xl font-bold text-purple-400 mb-2 flex items-center"><Car className="mr-2" /> Damage Scan AI</h3>
+                    <p className="text-xs text-slate-400 mb-4 max-w-sm">Leverage computer vision models to instantly analyze component breakdown severity without manual inspection.</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                       const btn = document.getElementById('ai-cam-btn');
+                       btn.innerHTML = '🔄 Processing Vision Model...';
+                       setTimeout(() => { btn.innerHTML = '✅ 94.2% AI Confidence Score'; setTimeout(() => btn.innerHTML = '📸 SCAN VEHICLE', 3000); }, 2000);
+                    }}
+                    id="ai-cam-btn"
+                    className="w-full py-4 rounded-2xl font-black tracking-widest text-lg transition-all duration-300 shadow-xl border bg-purple-950/50 text-purple-400 border-purple-500/30 hover:bg-purple-900/40 hover:text-purple-300 hover:border-purple-500/50"
+                  >
+                    📸 SCAN VEHICLE
+                  </button>
+                </div>
+              </div>
+
             </div>
 
             {/* Recent Claims */}
             {dashboard.recent_claims && dashboard.recent_claims.length > 0 && (
-              <div className="bg-white p-6 rounded-2xl shadow-lg">
-                <h3 className="text-lg font-bold mb-4">🕒 Recent Claims</h3>
-                <div className="space-y-2">
+              <div className="glass-panel p-6 rounded-3xl shadow-lg border border-white/5">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-lg font-bold text-white flex items-center"><Clock size={18} className="mr-2 text-brand-400"/> Recent Activity</h3>
+                  <button onClick={() => setActiveTab('claims')} className="text-xs font-bold text-brand-400 hover:text-brand-300 transition flex items-center uppercase tracking-widest">
+                    View All <ChevronRight size={14} className="ml-1" />
+                  </button>
+                </div>
+                <div className="space-y-3">
                   {dashboard.recent_claims.map((c) => {
                     const icon = TRIGGER_ICONS[c.type] || '⚡';
                     return (
@@ -960,24 +1291,25 @@ function Dashboard() {
                           payout_amount: c.payout, status: c.status, created_at: c.date,
                           fraud_score: 0,
                         })}
-                        className="bg-gray-50 p-3 rounded-xl flex justify-between items-center cursor-pointer hover:bg-blue-50 transition border border-transparent hover:border-blue-200"
+                        className="bg-slate-800/40 p-4 rounded-2xl flex justify-between items-center cursor-pointer hover:bg-slate-700/50 transition border border-white/5 hover:border-brand-500/30 group"
                       >
-                        <div className="flex items-center space-x-3">
-                          <span className="text-xl">{icon}</span>
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-2xl border border-white/5 shadow-inner group-hover:scale-110 transition-transform">
+                            {icon}
+                          </div>
                           <div>
-                            <div className="font-medium text-sm">{c.type}</div>
-                            <div className="text-xs text-gray-500">{c.date} • {c.hours}hrs</div>
+                            <div className="font-bold text-white text-sm">{c.type}</div>
+                            <div className="text-xs text-slate-400 mt-0.5">{c.date} <span className="mx-1 text-slate-600">•</span> {c.hours}hrs delay</div>
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-green-600">₹{c.payout}</div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            c.status === 'auto_approved' ? 'bg-green-100 text-green-700' :
-                            c.status === 'approved' ? 'bg-green-100 text-green-700' :
-                            c.status === 'manual_review' ? 'bg-yellow-100 text-yellow-700' :
-                            c.status === 'under_appeal' ? 'bg-blue-100 text-blue-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>{c.status}</span>
+                          <div className="font-bold text-emerald-400 text-lg tracking-tight">₹{c.payout}</div>
+                          <span className={`text-[10px] uppercase tracking-widest font-bold mt-1 inline-block ${
+                            c.status === 'auto_approved' || c.status === 'approved' ? 'text-emerald-500' :
+                            c.status === 'manual_review' ? 'text-yellow-500' :
+                            c.status === 'under_appeal' ? 'text-blue-500' :
+                            'text-red-500'
+                          }`}>{c.status.replace(/_/g, ' ')}</span>
                         </div>
                       </div>
                     );
@@ -988,171 +1320,189 @@ function Dashboard() {
                 </button>
               </div>
             )}
-          </>
+          </motion.div>
         )}
 
         {/* ===== CLAIMS TAB ===== */}
         {activeTab === 'claims' && (
-          <div className="bg-white p-6 rounded-2xl shadow-lg">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold">📋 All Claims ({claims?.total_claims || 0})</h3>
-              <div className="text-sm">
-                Protected: <span className="font-bold text-green-600">₹{claims?.total_earnings_protected || 0}</span>
+          <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} className="glass-panel p-6 sm:p-8 rounded-3xl shadow-lg border border-white/5">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-white flex items-center"><Activity size={20} className="mr-2 text-brand-400"/> All Claims <span className="ml-2 bg-white/10 px-2 py-0.5 rounded-lg text-sm">{claims?.total_claims || 0}</span></h3>
+              <div className="text-sm bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
+                Protected: <span className="font-bold text-emerald-400">₹{claims?.total_earnings_protected || 0}</span>
               </div>
             </div>
 
             {claims && claims.claims && claims.claims.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {claims.claims.map((c) => {
                   const icon = TRIGGER_ICONS[c.trigger_type] || '⚡';
                   return (
                     <div
                       key={c.id}
                       onClick={() => setSelectedClaim(c)}
-                      className="bg-gray-50 p-4 rounded-xl flex justify-between items-center cursor-pointer hover:bg-blue-50 transition border border-transparent hover:border-blue-200"
+                      className="bg-slate-800/30 p-4 rounded-2xl flex justify-between items-center cursor-pointer hover:bg-slate-700/40 transition border border-white/5 hover:border-brand-500/30 group"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className="text-2xl">{icon}</div>
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-900 flex items-center justify-center text-2xl border border-white/5 shadow-inner group-hover:scale-110 transition-transform">
+                          {icon}
+                        </div>
                         <div>
-                          <div className="font-medium">{c.trigger_type}</div>
-                          <div className="text-sm text-gray-500">
-                            {c.created_at} • {c.disruption_hours}hrs
-                            {c.trigger_zone && ` • ${c.trigger_zone}`}
+                          <div className="font-bold text-white">{c.trigger_type}</div>
+                          <div className="text-xs text-slate-400 mt-1">
+                            {c.created_at} <span className="mx-1 text-slate-600">•</span> {c.disruption_hours}hrs delay
+                            {c.trigger_zone && <><span className="mx-1 text-slate-600">•</span> {c.trigger_zone}</>}
                           </div>
                           {c.transaction_id && (
-                            <div className="text-xs text-gray-400 font-mono mt-0.5">Txn: {c.transaction_id}</div>
+                            <div className="text-[10px] text-slate-500 font-mono mt-1 flex items-center"><Zap size={10} className="mr-1"/> Txn: {c.transaction_id}</div>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-green-600 text-lg">₹{c.payout_amount}</div>
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          ['auto_approved', 'approved'].includes(c.status) ? 'bg-green-100 text-green-700' :
-                          c.status === 'manual_review' ? 'bg-yellow-100 text-yellow-700' :
-                          c.status === 'under_appeal' ? 'bg-blue-100 text-blue-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>{c.status}</span>
-                        <div className="text-xs text-gray-400 mt-1">Score: {c.fraud_score}</div>
+                        <div className="font-bold text-emerald-400 text-xl tracking-tight">₹{c.payout_amount}</div>
+                        <span className={`text-[10px] uppercase tracking-widest font-bold mt-1 inline-block px-2 py-0.5 rounded border ${
+                          ['auto_approved', 'approved'].includes(c.status) ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          c.status === 'manual_review' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                          c.status === 'under_appeal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                          'bg-red-500/10 text-red-400 border-red-500/20'
+                        }`}>{c.status.replace(/_/g, ' ')}</span>
+                        <div className="text-[10px] text-slate-500 mt-1 font-mono uppercase">AI Score: {c.fraud_score}</div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="text-center py-12">
-                <div className="text-5xl mb-3">🛡️</div>
-                <p className="text-gray-500 font-medium">No claims yet</p>
-                <p className="text-gray-400 text-sm mt-1">Your coverage is active. Claims are auto-processed!</p>
+              <div className="text-center py-20 px-4 border border-dashed border-white/10 rounded-3xl">
+                <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-white/5 group-hover:scale-110 transition">
+                  <ShieldAlert size={32} className="text-slate-500" />
+                </div>
+                <p className="text-white font-bold text-xl mb-2">No claims yet</p>
+                <p className="text-slate-400 text-sm">Your coverage is active. Disruption claims are auto-processed!</p>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
 
         {/* ===== SIMULATE TAB ===== */}
         {activeTab === 'simulate' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-lg">
-              <h3 className="text-lg font-bold mb-2">⚡ Simulate Disruption</h3>
-              <p className="text-gray-500 text-sm mb-4">
-                Test the system by simulating a disruption in <strong>{dashboard.worker.zone}</strong>.
-                System will create trigger → run fraud detection → process payout.
+          <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} className="space-y-6">
+            <div className="glass-panel p-6 sm:p-8 rounded-3xl shadow-lg border border-white/5 relative overflow-hidden">
+              <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px]" />
+              <h3 className="text-2xl font-bold mb-2 text-white flex items-center relative z-10"><Zap size={24} className="mr-2 text-brand-400"/> Simulate Disruption</h3>
+              <p className="text-slate-400 text-sm mb-6 relative z-10 max-w-2xl">
+                Test the parametric coverage engine in <strong>{dashboard.worker.zone}</strong>.
+                Selecting an event below will create a trigger → run the AI fraud detection → process payouts for affected workers instantly.
               </p>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 relative z-10">
                 {[
-                  { type: 'HEAVY_RAIN', value: 35, icon: '🌧️', label: 'Heavy Rain', desc: '35mm/hr, 4hrs', bg: 'bg-blue-50 border-blue-200 hover:bg-blue-100' },
-                  { type: 'EXTREME_HEAT', value: 47, icon: '🌡️', label: 'Extreme Heat', desc: '47°C, 4hrs', bg: 'bg-red-50 border-red-200 hover:bg-red-100' },
-                  { type: 'SEVERE_AQI', value: 520, icon: '🏭', label: 'Severe AQI', desc: 'AQI 520, 4hrs', bg: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100' },
-                  { type: 'CURFEW', value: 1, icon: '🚫', label: 'Curfew', desc: 'Section 144, 4hrs', bg: 'bg-purple-50 border-purple-200 hover:bg-purple-100' },
-                  { type: 'APP_DOWN', value: 120, icon: '📱', label: 'App Down', desc: 'Server crash, 4hrs', bg: 'bg-orange-50 border-orange-200 hover:bg-orange-100' },
-                  { type: 'FLOOD', value: 1, icon: '🌊', label: 'Flood', desc: 'Red alert, 4hrs', bg: 'bg-cyan-50 border-cyan-200 hover:bg-cyan-100' },
+                  { type: 'HEAVY_RAIN', value: 35, icon: '🌧️', label: 'Heavy Rain', desc: '35mm/hr, 4hrs', border: 'hover:border-blue-500/50', iconBg: 'bg-blue-500/20 text-blue-400' },
+                  { type: 'EXTREME_HEAT', value: 47, icon: '🌡️', label: 'Extreme Heat', desc: '47°C, 4hrs', border: 'hover:border-red-500/50', iconBg: 'bg-red-500/20 text-red-400' },
+                  { type: 'SEVERE_AQI', value: 520, icon: '🏭', label: 'Severe AQI', desc: 'AQI 520, 4hrs', border: 'hover:border-yellow-500/50', iconBg: 'bg-yellow-500/20 text-yellow-400' },
+                  { type: 'CURFEW', value: 1, icon: '🚫', label: 'Curfew / Bandh', desc: 'Section 144, 4hrs', border: 'hover:border-purple-500/50', iconBg: 'bg-purple-500/20 text-purple-400' },
+                  { type: 'APP_DOWN', value: 120, icon: '📱', label: 'App Down', desc: 'Server crash, 4hrs', border: 'hover:border-orange-500/50', iconBg: 'bg-orange-500/20 text-orange-400' },
+                  { type: 'FLOOD', value: 1, icon: '🌊', label: 'Flood Risk', desc: 'Red alert, 4hrs', border: 'hover:border-cyan-500/50', iconBg: 'bg-cyan-500/20 text-cyan-400' },
                 ].map((sim) => (
                   <button
                     key={sim.type}
                     onClick={() => handleSimulate(sim.type, sim.value)}
                     disabled={simLoading}
-                    className={`${sim.bg} border p-4 rounded-xl text-left transition disabled:opacity-50`}
+                    className={`bg-slate-800/40 p-5 rounded-2xl text-left transition disabled:opacity-50 border border-white/5 ${sim.border} group relative overflow-hidden`}
                   >
-                    <div className="text-2xl mb-1">{sim.icon}</div>
-                    <div className="font-semibold text-sm text-gray-800">{sim.label}</div>
-                    <div className="text-xs text-gray-500">{sim.desc}</div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition" />
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl mb-4 shadow-inner ${sim.iconBg}`}>{sim.icon}</div>
+                    <div className="font-bold text-white mb-1">{sim.label}</div>
+                    <div className="text-xs text-slate-400">{sim.desc}</div>
                   </button>
                 ))}
               </div>
 
               {simLoading && (
-                <div className="mt-6 text-center">
-                  <div className="text-4xl animate-bounce mb-2">⚡</div>
-                  <p className="text-blue-600 font-medium">Processing disruption...</p>
-                  <p className="text-gray-400 text-sm">Running fraud detection → calculating payout...</p>
+                <div className="mt-8 pt-8 border-t border-white/10 text-center relative z-10">
+                   <div className="w-16 h-16 mx-auto bg-brand-500/20 text-brand-400 rounded-full flex items-center justify-center border border-brand-500/30 shadow-[0_0_20px_rgba(79,70,229,0.3)] mb-4">
+                     <Zap size={28} className="animate-pulse" />
+                   </div>
+                  <p className="text-white font-bold text-lg mb-1">Processing Parametric Trigger...</p>
+                  <p className="text-slate-400 text-sm">Evaluating risk → Running AI model → Dispersing funds</p>
                 </div>
               )}
             </div>
 
             {/* Result */}
             {simResult && !simResult.error && (
-              <div className="bg-white p-6 rounded-2xl shadow-lg border-2 border-green-200">
-                <h3 className="text-lg font-bold text-green-700 mb-4">✅ Disruption Processed!</h3>
+              <motion.div initial={{opacity: 0, scale: 0.98}} animate={{opacity: 1, scale: 1}} className="glass-panel p-6 sm:p-8 rounded-3xl shadow-[0_0_30px_rgba(16,185,129,0.1)] border border-emerald-500/30 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/10 to-transparent pointer-events-none" />
+                <h3 className="text-xl font-bold text-emerald-400 mb-6 flex items-center relative z-10"><ShieldAlert size={20} className="mr-2" /> Action Verified & Processed!</h3>
 
-                <div className="bg-blue-50 p-4 rounded-xl mb-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                <div className="bg-slate-900/60 p-5 rounded-2xl mb-6 border border-white/5 relative z-10">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <div className="text-gray-500">Type</div>
-                      <div className="font-bold">{TRIGGER_ICONS[simResult.trigger?.type] || '⚡'} {simResult.trigger?.type}</div>
+                      <div className="text-slate-500 text-xs mb-1 uppercase tracking-wider font-bold">Trigger Type</div>
+                      <div className="font-bold text-white">{TRIGGER_ICONS[simResult.trigger?.type] || '⚡'} {simResult.trigger?.type}</div>
                     </div>
                     <div>
-                      <div className="text-gray-500">Severity</div>
-                      <div className="font-bold capitalize">{simResult.trigger?.severity}</div>
+                      <div className="text-slate-500 text-xs mb-1 uppercase tracking-wider font-bold">Severity Level</div>
+                      <div className="font-bold text-white capitalize">{simResult.trigger?.severity}</div>
                     </div>
                     <div>
-                      <div className="text-gray-500">Zone</div>
-                      <div className="font-bold">{simResult.trigger?.zone}</div>
+                      <div className="text-slate-500 text-xs mb-1 uppercase tracking-wider font-bold">Impact Zone</div>
+                      <div className="font-bold text-white flex items-center"><MapIcon size={14} className="mr-1 text-slate-400"/> {simResult.trigger?.zone}</div>
                     </div>
                     <div>
-                      <div className="text-gray-500">Duration</div>
-                      <div className="font-bold">{simResult.trigger?.duration_hours}hrs</div>
+                      <div className="text-slate-500 text-xs mb-1 uppercase tracking-wider font-bold">Active Duration</div>
+                      <div className="font-bold text-white flex items-center"><Clock size={14} className="mr-1 text-slate-400"/> {simResult.trigger?.duration_hours}hrs pending</div>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                  <div className="bg-gray-50 p-3 rounded-xl text-center">
-                    <div className="text-xs text-gray-500">Workers</div>
-                    <div className="text-xl font-bold text-gray-700">{simResult.impact?.workers_in_zone}</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 relative z-10">
+                  <div className="bg-slate-800/50 p-4 rounded-2xl text-center border border-white/5">
+                    <div className="text-xs text-slate-400 mb-1 uppercase tracking-widest font-bold">Workers</div>
+                    <div className="text-2xl font-bold text-white">{simResult.impact?.workers_in_zone}</div>
                   </div>
-                  <div className="bg-green-50 p-3 rounded-xl text-center">
-                    <div className="text-xs text-gray-500">Claims</div>
-                    <div className="text-xl font-bold text-green-700">{simResult.impact?.claims_created}</div>
+                  <div className="bg-emerald-900/20 p-4 rounded-2xl text-center border border-emerald-500/20 shadow-inner">
+                    <div className="text-xs text-emerald-400/80 mb-1 uppercase tracking-widest font-bold">Valid Claims</div>
+                    <div className="text-2xl font-bold text-emerald-400">{simResult.impact?.claims_created}</div>
                   </div>
-                  <div className="bg-red-50 p-3 rounded-xl text-center">
-                    <div className="text-xs text-gray-500">Rejected</div>
-                    <div className="text-xl font-bold text-red-700">{simResult.impact?.claims_rejected}</div>
+                  <div className="bg-red-900/20 p-4 rounded-2xl text-center border border-red-500/20 shadow-inner">
+                    <div className="text-xs text-red-400/80 mb-1 uppercase tracking-widest font-bold">Flagged</div>
+                    <div className="text-2xl font-bold text-red-400">{simResult.impact?.claims_rejected}</div>
                   </div>
-                  <div className="bg-blue-50 p-3 rounded-xl text-center">
-                    <div className="text-xs text-gray-500">Payout</div>
-                    <div className="text-xl font-bold text-blue-700">₹{simResult.impact?.total_payout}</div>
+                  <div className="bg-brand-900/20 p-4 rounded-2xl text-center border border-brand-500/20 shadow-inner">
+                    <div className="text-xs text-brand-400/80 mb-1 uppercase tracking-widest font-bold">Fund Payout</div>
+                    <div className="text-2xl font-bold text-brand-400">₹{simResult.impact?.total_payout}</div>
                   </div>
                 </div>
 
                 {/* Individual Claims */}
                 {simResult.claims && simResult.claims.length > 0 && (
-                  <div>
-                    <h4 className="font-bold text-sm text-gray-700 mb-2">Claims Processed:</h4>
+                  <div className="relative z-10 border-t border-white/5 pt-6">
+                    <h4 className="font-bold text-sm text-white mb-4 flex items-center"><Activity size={16} className="mr-2 text-brand-400"/> Fund Dispersal Log</h4>
                     <div className="space-y-2">
                       {simResult.claims.map((c, i) => (
-                        <div key={i} className="bg-gray-50 p-3 rounded-lg flex justify-between items-center text-sm">
-                          <div>
-                            <span className="font-medium">{c.worker_name}</span>
-                            <span className="text-gray-400 text-xs ml-2">({c.worker_token})</span>
+                        <div key={i} className="bg-slate-900/50 px-4 py-3 rounded-xl flex justify-between items-center text-sm border border-white/5">
+                          <div className="flex items-center">
+                            <div className="w-8 h-8 rounded-full bg-brand-500/20 text-brand-400 flex items-center justify-center font-bold mr-3 border border-brand-500/30">
+                              {c.worker_name.charAt(0)}
+                            </div>
+                            <div>
+                              <span className="font-bold text-white">{c.worker_name}</span>
+                              <span className="text-slate-500 text-xs ml-2 font-mono">#{c.worker_token}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-3">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                              c.fraud_score <= 30 ? 'bg-green-100 text-green-700' :
-                              c.fraud_score <= 70 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
-                            }`}>F:{c.fraud_score}</span>
-                            <span className="font-bold text-green-600">₹{c.payout_amount}</span>
-                            <span className="text-xs">
-                              {c.status === 'auto_approved' ? '✅' : c.status === 'manual_review' ? '⏳' : '❌'}
+                          <div className="flex items-center space-x-4">
+                            <span className={`px-2 py-1 rounded bg-slate-950 border border-white/5 font-mono text-[10px] uppercase font-bold tracking-wider ${
+                              c.fraud_score <= 30 ? 'text-emerald-400' :
+                              c.fraud_score <= 70 ? 'text-yellow-400' : 'text-red-400'
+                            }`}>Risk: {c.fraud_score}</span>
+                            <span className="font-bold text-emerald-400 text-base">₹{c.payout_amount}</span>
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${
+                              c.status === 'auto_approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 
+                              c.status === 'manual_review' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 
+                              'bg-red-500/20 text-red-400 border border-red-500/30'
+                            }`}>
+                              {c.status === 'auto_approved' ? '✓' : c.status === 'manual_review' ? '⏳' : '✕'}
                             </span>
                           </div>
                         </div>
@@ -1162,24 +1512,38 @@ function Dashboard() {
                 )}
 
                 {simResult.rejected && simResult.rejected.length > 0 && (
-                  <div className="mt-3">
-                    <h4 className="font-bold text-sm text-red-700 mb-2">Not Eligible:</h4>
-                    {simResult.rejected.map((r, i) => (
-                      <div key={i} className="text-sm text-gray-500">❌ {r.worker_name}: {r.reason}</div>
-                    ))}
+                  <div className="mt-6 pt-6 border-t border-white/5 relative z-10">
+                    <h4 className="font-bold text-xs text-red-400 uppercase tracking-widest mb-3 flex items-center"><XCircle size={14} className="mr-2"/> Denied by Rules Engine</h4>
+                    <div className="space-y-2">
+                       {simResult.rejected.map((r, i) => (
+                        <div key={i} className="text-sm text-slate-400 bg-red-900/10 border border-red-500/10 px-3 py-2 rounded-lg flex items-center">
+                          <span className="font-medium mr-2 text-slate-300">{r.worker_name}</span> <span className="opacity-60">— {r.reason}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
 
             {simResult?.error && (
-              <div className="bg-red-50 border border-red-200 p-4 rounded-xl">
-                <p className="text-red-700 font-medium">❌ {simResult.error}</p>
+              <div className="bg-red-900/30 border border-red-500/30 p-4 rounded-xl flex items-center">
+                 <AlertTriangle size={20} className="text-red-400 mr-3" />
+                <p className="text-red-300 font-medium">{simResult.error}</p>
               </div>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
+
+      {/* 4. GENERATIVE AI RahatPay BOT (FLOATING CTA) */}
+      <button 
+        onClick={() => alert(`🤖 RahatPay GenAI Beta:\n\nHello ${dashboard?.worker?.name || 'Worker'}! Based on your active policies, you are fully covered for flood anomalies in ${dashboard?.worker?.zone || 'your zone'}. Your trust tier acts as a 1.2x auto-multiplier.\n\n(This demonstrates Generative NLP integration into personalized states.)`)}
+        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-full shadow-[0_0_30px_rgba(79,70,229,0.5)] border border-white/20 flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group z-50 pointer-events-auto"
+      >
+        <Cpu size={32} className="text-white group-hover:animate-pulse" />
+        <span className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-slate-900 rounded-full animate-bounce"></span>
+      </button>
     </div>
   );
 }

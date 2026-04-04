@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./gigshield.db")
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./RahatPay.db")
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
-    JWT_SECRET = os.getenv("JWT_SECRET", "gigshield_super_secret_key_2026")
+    JWT_SECRET = os.getenv("JWT_SECRET", "RahatPay_super_secret_key_2026")
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRY_MINUTES = 1440  # 24 hours
     

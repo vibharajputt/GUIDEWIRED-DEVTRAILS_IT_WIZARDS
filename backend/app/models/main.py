@@ -14,7 +14,7 @@ Base.metadata.create_all(bind=engine)
 
 # Create FastAPI app
 app = FastAPI(
-    title="GigShield API",
+    title="RahatPay API",
     description="AI-Powered Parametric Insurance for India's Gig Economy",
     version="1.0.0"
 )
@@ -33,7 +33,7 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {
-        "message": "GigShield API is running!",
+        "message": "RahatPay API is running!",
         "version": "1.0.0",
         "status": "active"
     }
@@ -45,5 +45,5 @@ def health_check():
     return {
         "status": "healthy",
         "database": "connected",
-        "service": "GigShield Insurance Platform"
+        "service": "RahatPay Insurance Platform"
     }

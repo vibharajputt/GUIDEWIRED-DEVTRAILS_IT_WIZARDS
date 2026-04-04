@@ -10,8 +10,8 @@ const api = axios.create({
 });
 
 // Aadhaar
-export const sendAadhaarOTP = (aadhaar_number) =>
-  api.post('/api/aadhaar/send-otp', { aadhaar_number });
+export const sendAadhaarOTP = (aadhaar_number, phone) =>
+  api.post('/api/aadhaar/send-otp', { aadhaar_number, phone });
 
 export const verifyAadhaarOTP = (aadhaar_number, otp, session_id) =>
   api.post('/api/aadhaar/verify-otp', { aadhaar_number, otp, session_id });
@@ -19,6 +19,10 @@ export const verifyAadhaarOTP = (aadhaar_number, otp, session_id) =>
 // Workers
 export const registerWorker = (data) =>
   api.post('/api/workers/register', data);
+
+// UPI Verification
+export const verifyUPI = (upi_id) =>
+  api.post('/api/upi/verify', { upi_id });
 
 export const getWorkerById = (id) =>
   api.get(`/api/workers/${id}`);
@@ -59,6 +63,9 @@ export const renewPolicy = (policyId) =>
 export const simulateDisruption = (data) =>
   api.post('/api/triggers/simulate', data);
 
+export const approveZone = (trigger_id) =>
+  api.put(`/api/triggers/${trigger_id}/approve_zone`);
+
 export const getTriggerTypes = () =>
   api.get('/api/triggers/types');
 
@@ -92,11 +99,11 @@ export const getAdminDashboard = () =>
   api.get('/api/dashboard/admin');
 
 // Live Weather
-export const getCurrentWeather = (pincode) =>
-  api.get(`/api/weather/current/${pincode}`);
+export const getCurrentWeather = (pincode, lat, lon) =>
+  api.get(`/api/weather/current/${pincode}`, { params: { lat, lon } });
 
-export const getCurrentAQI = (pincode) =>
-  api.get(`/api/weather/aqi/${pincode}`);
+export const getCurrentAQI = (pincode, lat, lon) =>
+  api.get(`/api/weather/aqi/${pincode}`, { params: { lat, lon } });
 
 export const scanAllZones = () =>
   api.get('/api/weather/scan-all-zones');
@@ -106,7 +113,24 @@ export const getRiskMapData = () =>
   api.get('/api/zones/risk-map');
 
 // Forecast
-export const getForecast = (pincode) =>
-  api.get(`/api/forecast/${pincode}`);
+export const getForecast = (pincode, lat, lon) =>
+  api.get(`/api/forecast/${pincode}`, { params: { lat, lon } });
+
+// 7-Layer Fraud Detection
+export const submitSensorData = (data) =>
+  api.post('/api/fraud/collect-sensor-data', data);
+
+export const getVerificationStatus = (worker_id) =>
+  api.get(`/api/fraud/verification-status/${worker_id}`);
+
+// Notifications
+export const getWorkerNotifications = (worker_id) =>
+  api.get(`/api/notifications/worker/${worker_id}`);
+
+export const getAdminNotifications = () =>
+  api.get('/api/notifications/admin');
+
+export const markNotificationRead = (notif_id) =>
+  api.post(`/api/notifications/${notif_id}/read`);
 
 export default api;

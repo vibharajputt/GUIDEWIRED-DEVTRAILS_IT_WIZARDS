@@ -1,5 +1,5 @@
 """
-GigShield - Seed Data Script (FIXED)
+RahatPay - Seed Data Script (FIXED)
 Run: python seed_data.py (from backend folder)
 """
 
@@ -628,7 +628,7 @@ def print_summary():
     )
 
     print("\n" + "=" * 60)
-    print("        🛡️  GIGSHIELD — SEED DATA SUMMARY")
+    print("        🛡️  RahatPay — SEED DATA SUMMARY")
     print("=" * 60)
     print(f"  👥 Workers Created:       {workers}")
     print(f"  📋 Active Policies:       {active_policies}")
@@ -656,7 +656,7 @@ def print_summary():
 # RUN EVERYTHING
 # ============================================
 if __name__ == "__main__":
-    print("🛡️  GigShield — Seed Data Generator")
+    print("🛡️  RahatPay — Seed Data Generator")
     print("=" * 50)
 
     try:

@@ -1,5 +1,5 @@
 
-# 🛡️ GigShield — AI-Powered Parametric Insurance for India's Gig Economy
+# 🛡️ RahatPay — AI-Powered Parametric Insurance for India's Gig Economy
 
 > **"Your Earnings, Protected Every Week"**
 
@@ -8,7 +8,7 @@
 ## 📑 Table of Contents
 
 1. [Problem Statement](#-problem-statement)
-2. [Our Solution — GigShield](#-our-solution--gigshield)
+2. [Our Solution — RahatPay](#-our-solution--RahatPay)
 3. [Chosen Persona](#-chosen-persona)
 4. [Key Features](#-key-features)
 5. [Parametric Triggers — What Activates a Claim](#-parametric-triggers--what-activates-a-claim)
@@ -70,11 +70,11 @@ A quick-commerce delivery partner earning ₹15,000 to ₹20,000 per month can l
 
 ---
 
-## 💡 Our Solution — GigShield
+## 💡 Our Solution — RahatPay
 
-GigShield is an AI-powered parametric micro-insurance platform that provides automated income protection to gig delivery workers against external disruptions.
+RahatPay is an AI-powered parametric micro-insurance platform that provides automated income protection to gig delivery workers against external disruptions.
 
-### What GigShield Does
+### What RahatPay Does
 
 1. MONITORS real-time external disruptions including weather, AQI, curfews, and app outages across all operational zones
 2. AUTOMATICALLY DETECTS when conditions make delivery work impossible in a specific zone
@@ -85,7 +85,7 @@ GigShield is an AI-powered parametric micro-insurance platform that provides aut
 ### What Makes It Parametric
 
 ```
-Traditional Insurance:              Parametric Insurance (GigShield):
+Traditional Insurance:              Parametric Insurance (RahatPay):
 ─────────────────────────           ──────────────────────────────────
 Worker files claim manually         System detects disruption automatically
 Worker must prove loss              Pre-defined trigger equals auto claim
@@ -177,6 +177,18 @@ Worker dashboard showing earnings protected, active coverage, and claims history
 
 ### Feature 8: Worker Trust Score
 Reputation system that rewards honest behavior with faster approvals and premium discounts. Builds long-term trust between platform and workers.
+
+### Feature 9: Cinematic Verification Engine
+A 7-layer immersive scanning animation triggered on page load and claim submission that visualizes the AI fraud-checking process in real-time, providing immediate visual feedback of active protection to the worker.
+
+### Feature 10: Complete Worker Dashboard Suite
+A powerful 10-feature PWA dashboard including Animated Counters, i18n Language Toggle, Command Palette (Ctrl+K), Theme Toggles, Notification Center, and one-click Worker ID Card generation.
+
+### Feature 11: Real-time Admin Monitoring
+A secure admin portal with PDF export capabilities, live Activity Ticker, and comprehensive data visualization using Recharts to track fraud attempts and system health across all operational zones.
+
+### Feature 12: Dual-Channel Notifications
+A realtime bridging system between the worker and the backend admin portal, ensuring alerts such as "Simulated Rain" or "SOS Triggered" are immediately populated and visible for platform monitoring.
 
 ---
 
@@ -345,7 +357,7 @@ Step 4: System generates unique hash
             │
 Step 5: Token stored in DB (Aadhaar number is NOT stored)
             │
-Step 6: Worker gets unique GigShield ID: GS-7A3F9B2E
+Step 6: Worker gets unique RahatPay ID: GS-7A3F9B2E
             │
 Step 7: All future policies and claims linked to this token
 ```
@@ -1448,7 +1460,7 @@ We analyze 38 data points across 7 categories to detect fraud. No single data po
 │  "Your claim has been approved!                                   │
 │   Amount is being transferred to your UPI.                       │
 │   Expected in 5-15 minutes.                                      │
-│   Thank you for being a GigShield member!"                       │
+│   Thank you for being a RahatPay member!"                       │
 │                                                                   │
 │  ─────────────────────────────────────────────────────────────   │
 │                                                                   │
@@ -1606,11 +1618,11 @@ We analyze 38 data points across 7 categories to detect fraud. No single data po
 └──────────────────────────────────────────────────────────────┘
 ```
 
-#### How GigShield Stops the Telegram Syndicate
+#### How RahatPay Stops the Telegram Syndicate
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│           HOW GIGSHIELD STOPS THE TELEGRAM SYNDICATE             │
+│           HOW RahatPay STOPS THE TELEGRAM SYNDICATE             │
 │                                                                   │
 │  ATTACK STEP 1: 500 workers join via Telegram                    │
 │  OUR DEFENSE: Registration velocity monitoring                   │
@@ -1760,7 +1772,7 @@ Every Monday 6:00 AM:
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│                        GIGSHIELD PLATFORM                             │
+│                        RahatPay PLATFORM                             │
 │                                                                       │
 │  ┌───────────┐                    ┌──────────────────────────────┐   │
 │  │  Worker   │    HTTPS           │      API GATEWAY             │   │
@@ -1856,7 +1868,7 @@ Every Monday 6:00 AM:
   ║                  PHASE 1: ONBOARDING                     ║
   ╠══════════════════════════════════════════════════════════╣
   ║                                                          ║
-  ║  [1] Worker opens GigShield PWA                         ║
+  ║  [1] Worker opens RahatPay PWA                         ║
   ║  [2] Enters Aadhaar Number                              ║
   ║  [3] OTP sent to Aadhaar-linked mobile                  ║
   ║  [4] OTP Verified and Unique Token Generated (GS-XXXX)  ║
@@ -2139,7 +2151,7 @@ class WeatherTriggerService:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  GigShield                                    [Rahul] [Bell]│
+│  RahatPay                                    [Rahul] [Bell]│
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  Welcome Back, Rahul!          Token: GS-7A3F9B2E           │
@@ -2173,7 +2185,7 @@ class WeatherTriggerService:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  GigShield Admin Portal                    [Admin] [Bell 23]│
+│  RahatPay Admin Portal                    [Admin] [Bell 23]│
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌──────────┐ │
@@ -2221,7 +2233,7 @@ System sends notifications to workers before disruptions hit. Example: "Heavy ra
 Worker sees a bad weather forecast for tomorrow. They can buy a ₹10 single-day top-up for extra coverage beyond their regular plan.
 
 ### Feature 4: Earnings Impact Calculator
-Shows workers the value proposition clearly by comparing their typical earning on a normal day versus a disrupted day and showing how much GigShield would have covered.
+Shows workers the value proposition clearly by comparing their typical earning on a normal day versus a disrupted day and showing how much RahatPay would have covered.
 
 ### Feature 5: Weather-Aware Tolerance
 During confirmed severe weather events the system automatically lowers verification thresholds because network issues are expected. Genuine workers are not penalized for poor connectivity during storms.
@@ -2307,7 +2319,7 @@ This project is built for the Guidewire DEVTrails 2026 Hackathon.
 ---
 
 > Built with dedication for India's Gig Workers.
-> GigShield — Because every delivery partner deserves a safety net.
+> RahatPay — Because every delivery partner deserves a safety net.
 ```
 
 ---
