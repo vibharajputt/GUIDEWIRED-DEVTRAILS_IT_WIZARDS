@@ -2334,6 +2334,7 @@ PLANNED:
 
 ---
 ## 🔴 Pitch Deck
+https://drive.google.com/file/d/1SZMF2jKxddvTp8p4IstnvvyAAn03vo7j/view?usp=sharing
 
 ---
 
