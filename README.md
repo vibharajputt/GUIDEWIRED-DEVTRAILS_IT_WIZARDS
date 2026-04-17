@@ -29,6 +29,7 @@
 20. [Innovative Features and Differentiators](#-innovative-features-and-differentiators)
 21. [Development Roadmap](#-development-roadmap)
 22. [Team](#-team)
+23. Pitch Deck
 
 ---
 
@@ -2330,6 +2331,9 @@ PLANNED:
 | Sumit Kumar | ML and AI Engineer | Risk Model, Fraud Detection, Premium Model |
 | Vibha Rajput | Frontend Developer | PWA, Dashboards, UX Design |
 | Sakshi Singh & Bhumika Gupta| Product and Data | Business Model, Research, Documentation |
+
+---
+## 🔴 Pitch Deck
 
 ---
 
