@@ -22,7 +22,7 @@ function Home() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { 
+    visible: {
       opacity: 1,
       transition: { staggerChildren: 0.2 }
     }
@@ -34,17 +34,17 @@ function Home() {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       className="min-h-screen text-slate-100"
     >
       {/* ===== HERO SECTION ===== */}
       <div className="relative overflow-hidden pt-20 pb-16">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-brand-600/30 blur-[120px] rounded-full pointer-events-none" />
-        
+
         <div className="max-w-6xl mx-auto px-4 text-center relative z-10">
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="inline-flex items-center space-x-2 glass-panel px-4 py-1.5 rounded-full text-sm font-medium text-brand-300 mb-8 border border-brand-500/30"
@@ -53,16 +53,16 @@ function Home() {
             <span>Guidewire DEVTrails 2026 Hackathon</span>
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.1 }}
             className="text-6xl md:text-8xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-brand-400 mb-6 tracking-tight leading-none"
           >
-           RahatPay<span className="text-brand-500">.</span>
+            RahatPay<span className="text-brand-500">.</span>
           </motion.h1>
 
-          <motion.p 
+          <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -71,18 +71,18 @@ function Home() {
             Your Earnings, Protected Every Week.
           </motion.p>
 
-          <motion.p 
+          <motion.p
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
             className="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            India's first <strong>AI-powered parametric micro-insurance</strong> platform 
-            that automatically protects gig delivery workers against income loss from 
+            India's first <strong>AI-powered parametric micro-insurance</strong> platform
+            that automatically protects gig delivery workers against income loss from
             weather, pollution, curfews, and app outages.
           </motion.p>
 
-          <motion.div 
+          <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
@@ -106,13 +106,13 @@ function Home() {
 
           {/* Live Stats */}
           {stats && (
-            <motion.div 
+            <motion.div
               variants={containerVariants}
               initial="hidden"
               animate="visible"
               className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto"
             >
-               <motion.div variants={itemVariants} className="glass-panel p-5 rounded-2xl border border-white/5 hover:border-brand-500/30 transition">
+              <motion.div variants={itemVariants} className="glass-panel p-5 rounded-2xl border border-white/5 hover:border-brand-500/30 transition">
                 <div className="flex justify-center mb-2"><Users className="text-blue-400" /></div>
                 <div className="text-3xl font-bold text-white">{stats.overview.total_workers}</div>
                 <div className="text-xs text-slate-400 uppercase tracking-widest mt-1">Protected</div>
@@ -156,9 +156,9 @@ function Home() {
               { icon: '🚫', title: 'Social Disruptions', desc: 'Curfews and bandhs cause 1-7 days of zero income. Nobody covers this lost time.', color: 'from-orange-500/20 to-orange-900/20', border: 'border-orange-500/30' },
               { icon: '📱', title: 'Technical Outages', desc: 'App crashes & internet shutdowns mean workers earn nothing but still pay equated expenses.', color: 'from-purple-500/20 to-purple-900/20', border: 'border-purple-500/30' }
             ].map((problem, i) => (
-              <motion.div 
+              <motion.div
                 whileHover={{ y: -10 }}
-                key={i} 
+                key={i}
                 className={`glass-panel p-8 rounded-3xl bg-gradient-to-b ${problem.color} border ${problem.border}`}
               >
                 <div className="text-5xl mb-6">{problem.icon}</div>
@@ -173,7 +173,7 @@ function Home() {
       {/* ===== HOW IT WORKS ===== */}
       <div className="py-24 bg-slate-950 relative border-t border-white/5">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[500px] bg-brand-900/20 blur-[100px] pointer-events-none" />
-        
+
         <div className="max-w-6xl mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
@@ -216,10 +216,10 @@ function Home() {
       {/* ===== COVERAGE GRID ===== */}
       <div className="py-24 border-t border-white/5">
         <div className="max-w-6xl mx-auto px-4">
-           <h2 className="text-3xl md:text-5xl font-bold text-center text-white mb-16">
+          <h2 className="text-3xl md:text-5xl font-bold text-center text-white mb-16">
             Parametric <span className="text-brand-400">Coverage</span>
           </h2>
-          
+
           <div className="grid md:grid-cols-2 gap-8">
             <div className="glass-panel p-8 rounded-3xl border border-green-500/20 bg-green-900/10">
               <h3 className="text-2xl font-bold text-green-400 mb-6 flex items-center"><ShieldCheck className="mr-3" /> Covered Instantly</h3>
@@ -239,7 +239,7 @@ function Home() {
                 ))}
               </ul>
             </div>
-            
+
             <div className="glass-panel p-8 rounded-3xl border border-red-500/20 bg-red-900/10">
               <h3 className="text-2xl font-bold text-red-400 mb-6 flex items-center"><ShieldAlert className="mr-3" /> Not Covered</h3>
               <ul className="space-y-4">
@@ -264,7 +264,7 @@ function Home() {
       {/* ===== PLANS SECTION ===== */}
       <div className="py-24 bg-slate-950 border-t border-white/5 relative overflow-hidden">
         <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-brand-600/10 blur-[120px] rounded-full pointer-events-none" />
-        
+
         <div className="max-w-6xl mx-auto px-4 relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
@@ -274,7 +274,7 @@ function Home() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-             {[
+            {[
               { name: 'Basic', price: '₹25', desc: 'Perfect for part-time riders.', coverage: '70%', daily: '₹300', weekly: '₹1,500' },
               { name: 'Standard', price: '₹35', desc: 'The sweet spot for full-timers.', coverage: '80%', daily: '₹450', weekly: '₹2,250', reco: true },
               { name: 'Pro', price: '₹48', desc: 'Maximum protection for power users.', coverage: '90%', daily: '₹600', weekly: '₹3,000' }
@@ -311,11 +311,10 @@ function Home() {
                 </div>
                 <Link
                   to="/onboarding"
-                  className={`block w-full py-4 rounded-xl text-center font-bold transition-all ${
-                    plan.reco 
-                      ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-500/25' 
+                  className={`block w-full py-4 rounded-xl text-center font-bold transition-all ${plan.reco
+                      ? 'bg-brand-600 hover:bg-brand-500 text-white shadow-lg shadow-brand-500/25'
                       : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
-                  }`}
+                    }`}
                 >
                   Choose {plan.name}
                 </Link>
@@ -327,7 +326,7 @@ function Home() {
 
       {/* ===== ACTION CTA ===== */}
       <div className="py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-900 to-slate-900 z-0"/>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-900 to-slate-900 z-0" />
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10 glass-super p-16 rounded-[3rem] border border-white/10">
           <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">Experience RahatPay.</h2>
           <p className="text-slate-300 text-xl mb-10 max-w-2xl mx-auto">
@@ -338,7 +337,7 @@ function Home() {
               Create Worker Profile
             </Link>
             <Link to="/admin" className="glass-panel text-white border border-white/20 hover:bg-white/10 px-8 py-4 rounded-full text-lg font-bold transition flex items-center justify-center">
-              <Activity className="mr-2"/> View Admin
+              <Activity className="mr-2" /> View Admin
             </Link>
           </div>
         </div>

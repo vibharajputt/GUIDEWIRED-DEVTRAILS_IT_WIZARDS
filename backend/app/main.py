@@ -500,7 +500,7 @@ def _haversine_km(lat1, lon1, lat2, lon2):
 
 
 def _layer1_gps_location(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 1: GPS Coordinates — Is the worker in the disrupted zone?"""
+    """Layer 1: Spatial Geo-Fencing — Real-time boundary validation against disrupted polygons"""
     score = 0  # 0 = clean, 100 = fraud
     status = "UNAVAILABLE"
     details = []
@@ -560,7 +560,7 @@ def _layer1_gps_location(worker, trigger, sensor_readings, db) -> Dict:
 
 
 def _layer2_gps_trajectory(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 2: GPS Trajectory — Did the worker travel naturally?"""
+    """Layer 2: Kalman Filter Trajectory — Detects impossible velocity vectors and spoofing jumps"""
     score = 0
     status = "UNAVAILABLE"
     details = []
@@ -593,7 +593,7 @@ def _layer2_gps_trajectory(worker, trigger, sensor_readings, db) -> Dict:
     if teleportation_detected:
         score = 60
         status = "FAIL"
-        details.append(f"Teleportation detected! Max speed: {max_speed_kmh:.0f}km/h — GPS jumped unnaturally")
+        details.append(f"Kinematic anomaly detected! Velocity vector out of bounds (Max speed: {max_speed_kmh:.0f}km/h) — Geographic spoofing probable")
     elif total_distance < 0.05 and len(gps_points) > 3:
         # GPS not moving at all — suspicious for delivery worker
         score = 20
@@ -615,7 +615,7 @@ def _layer2_gps_trajectory(worker, trigger, sensor_readings, db) -> Dict:
 
 
 def _layer3_motion_activity(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 3: Motion & Activity — Accelerometer, gyroscope, step counter."""
+    """Layer 3: Biomechanical Telemetry — IMU signature mapping (Accel/Gyro micro-vibrations)"""
     score = 0
     status = "UNAVAILABLE"
     details = []
@@ -689,7 +689,7 @@ def _layer3_motion_activity(worker, trigger, sensor_readings, db) -> Dict:
 
 
 def _layer4_network_cell(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 4: Network & Cell Tower Triangulation."""
+    """Layer 4: BSSID Triangulation — Cross-verifies GSM cell towers & Wi-Fi localized nodes"""
     score = 0
     status = "UNAVAILABLE"
     details = []
@@ -743,7 +743,7 @@ def _layer4_network_cell(worker, trigger, sensor_readings, db) -> Dict:
 
 
 def _layer5_environmental(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 5: Environmental Sensors — Barometer, light, noise."""
+    """Layer 5: Barometric Noise Correlation — Validates ambient pressure/lux drops matching weather claims"""
     score = 0
     status = "UNAVAILABLE"
     details = []
@@ -807,7 +807,7 @@ def _layer5_environmental(worker, trigger, sensor_readings, db) -> Dict:
 
 
 def _layer6_behavioral(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 6: Behavioral Consistency."""
+    """Layer 6: Temporal Behavioral AI — Deep learning evaluation of historical claim velocity anomalies"""
     score = 0
     status = "PASS"
     details = []
@@ -893,7 +893,7 @@ def _layer6_behavioral(worker, trigger, sensor_readings, db) -> Dict:
 
 
 def _layer7_crowd_intelligence(worker, trigger, sensor_readings, db) -> Dict:
-    """Layer 7: Crowd Intelligence — Syndicate detection."""
+    """Layer 7: Syndicate Clustering Matrix — Identifies organized mass-claims via device IP fingerprints"""
     score = 0
     status = "PASS"
     details = []

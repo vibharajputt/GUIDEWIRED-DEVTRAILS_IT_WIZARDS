@@ -12,6 +12,7 @@ import AnimatedCounter from '../components/AnimatedCounter';
 import SkeletonLoader from '../components/SkeletonLoader';
 import ActivityTicker from '../components/ActivityTicker';
 import ThemeToggle from '../components/ThemeToggle';
+import SmartContractLedger from '../components/SmartContractLedger';
 import { LanguageToggle } from '../components/I18nProvider';
 import { motion } from 'framer-motion';
 import { ShieldAlert, ChevronRight, Lock } from 'lucide-react';
@@ -579,6 +580,11 @@ function Admin() {
               </div>
             </div>
 
+            {/* Smart Contract Web3 Ledger */}
+            <div className="mb-6">
+              <SmartContractLedger claims={claims?.claims || []} />
+            </div>
+
             {/* Charts Row */}
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               {/* Revenue vs Payouts Bar Chart */}
@@ -806,15 +812,15 @@ function Admin() {
 
             {/* Pending Review Queue */}
             {claims.claims &&
-              claims.claims.filter((c) => c.status === 'manual_review').length > 0 && (
+              claims.claims.filter((c) => ['manual_review', 'zone_pending', 'under_appeal'].includes(c.status)).length > 0 && (
                 <div className="glass-panel border-2 border-yellow-500/30 bg-yellow-900/20 p-6 rounded-2xl">
                   <h3 className="text-lg font-bold text-yellow-200 mb-4">
                     ⏳ Pending Review Queue (
-                    {claims.claims.filter((c) => c.status === 'manual_review').length})
+                    {claims.claims.filter((c) => ['manual_review', 'zone_pending', 'under_appeal'].includes(c.status)).length})
                   </h3>
                   <div className="space-y-3">
                     {claims.claims
-                      .filter((c) => c.status === 'manual_review')
+                      .filter((c) => ['manual_review', 'zone_pending', 'under_appeal'].includes(c.status))
                       .map((c) => (
                         <div
                           key={c.id}
@@ -945,10 +951,9 @@ function Admin() {
                               {c.status}
                             </span>
                           </td>
-                          <td className="p-3 text-slate-500 text-xs">{c.created_at}</td>
+                          <td className="p-3 text-slate-500 text-xs">{new Date(c.created_at).toLocaleString()}</td>
                           <td className="p-3">
-                            {(c.status === 'manual_review' ||
-                              c.status === 'under_appeal') && (
+                            {(['manual_review', 'under_appeal', 'zone_pending'].includes(c.status)) && (
                               <div className="flex space-x-1">
                                 <button
                                   onClick={() => handleApprove(c.id)}
@@ -1352,13 +1357,13 @@ function Admin() {
               <div className="glass-panel p-6 rounded-3xl shadow-xl border border-white/5">
                 <h3 className="text-lg font-bold mb-4">
                   ⏳ Fraud Review Queue (
-                  {claims.claims.filter((c) => c.status === 'manual_review').length})
+                  {claims.claims.filter((c) => ['manual_review', 'zone_pending', 'under_appeal'].includes(c.status)).length})
                 </h3>
-                {claims.claims.filter((c) => c.status === 'manual_review').length >
+                {claims.claims.filter((c) => ['manual_review', 'zone_pending', 'under_appeal'].includes(c.status)).length >
                 0 ? (
                   <div className="space-y-3">
                     {claims.claims
-                      .filter((c) => c.status === 'manual_review')
+                      .filter((c) => ['manual_review', 'zone_pending', 'under_appeal'].includes(c.status))
                       .map((c) => (
                         <div
                           key={c.id}

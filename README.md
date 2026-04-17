@@ -43,14 +43,14 @@ India's platform-based delivery partners working for companies like Zomato, Swig
 │                                                              │
 │   External disruptions like extreme weather, pollution,      │
 │   natural disasters, curfews, and platform outages cause     │
-│   gig workers to lose 20-30% of their monthly earnings.     │
+│   gig workers to lose 20-30% of their monthly earnings.      │
 │                                                              │
-│   ❌ No income protection exists for these workers           │
+│   ❌ No income protection exists for these workers          │
 │   ❌ No safety net for uncontrollable events                 │
 │   ❌ Workers bear 100% financial loss                        │
 │   ❌ No existing insurance product addresses this gap        │
-│   ❌ Traditional insurance is too slow and expensive          │
-│                                                              │
+│   ❌ Traditional insurance is too slow and expensive         │
+│                                                               │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -163,8 +163,8 @@ Weekly premium calculated using ML risk model. Personalized based on zone risk, 
 ### Feature 3: Parametric Auto-Triggers
 Real-time monitoring of 6 disruption categories with 26 specific triggers. Zero-touch automatic claim initiation when thresholds are breached.
 
-### Feature 4: 7-Layer Intelligent Fraud Detection
-Multi-signal authenticity engine going far beyond GPS. Includes cell tower triangulation, motion sensors, environmental sensors, behavioral analysis, and network graph analysis for syndicate detection.
+### Feature 4: 7-Layer Intelligent Fraud Shield (Military Grade)
+Multi-signal authenticity engine incorporating Spatial Geo-Fencing, Kalman Filter Trajectory analysis to block GPS spoofing, Biomechanical Telemetry via IMU sensors, BSSID Triangulation across GSM and WiFi networks, Barometric Noise Correlation, Temporal Behavioral ML, and a Syndicate Clustering Matrix to identify massive coordinated strikes.
 
 ### Feature 5: Instant Payout System
 Auto-approved claims paid within 5 to 30 minutes via UPI. Partial advance payouts for flagged claims to protect genuine workers.
@@ -189,6 +189,27 @@ A secure admin portal with PDF export capabilities, live Activity Ticker, and co
 
 ### Feature 12: Dual-Channel Notifications
 A realtime bridging system between the worker and the backend admin portal, ensuring alerts such as "Simulated Rain" or "SOS Triggered" are immediately populated and visible for platform monitoring.
+
+### Feature 13: Autonomous Voice-SOS Claims (Web Speech AI)
+A persistent, floating microphone interface available to the worker. Powered natively by the browser's Web Speech API, it allows workers in distress to speak their claim directly. The Natural Language Processing engine extracts keywords such as accident, flood, heat, or curfew, and instantly triggers the backend claim API autonomously without requiring any typed input.
+
+### Feature 14: Biometric Fatigue Scanner (AR Computer Vision)
+Before a worker starts their shift, the system engages the device webcam via WebRTC to simulate a Photoplethysmography (PPG) vitals scan. An animated AR grid scans the user's face to calculate Heart Rate and Stress Index, determining the worker's fatigue map before allowing them to clock in.
+
+### Feature 15: Immutable Smart Contract Web3 Ledger
+A cryptographic minting terminal placed right inside the Admin dashboard mimicking a Web3 zero-touch payout ledger. As automated payouts are processed, it natively generates and renders SHA-256 hashes, mock gas fees, and execution tags in a cascading matrix, proving the immutable nature of the parametric system.
+
+### Feature 16: Omnichannel WhatsApp Bot with Hinglish NLP
+A fully functional WhatsApp-style floating chat interface on the worker dashboard. Workers can type naturally in Hinglish (e.g., "bhai bahut tez baarish ho rahi hai, paani bhar gaya") and the custom NLP regex engine extracts disruption keywords, maps them to backend triggers, responds contextually in Hinglish, and autonomously fires the claim API without any manual form-filling. Supports rain, flood, accident, curfew, heat, and police-related disruptions natively.
+
+### Feature 17: 3D Holographic Digital Twin Passport
+A premium, mouse-tracking 3D identity card rendered at the top of the worker dashboard using CSS perspective transforms and framer-motion spring physics. Moving the cursor across the card produces a realistic tilt effect with a radial glare overlay simulating holographic foil. The card dynamically adapts its color gradient and badge label based on the worker's trust tier (Bronze through Platinum), functioning as a gamified Web3 Digital Identity artifact.
+
+### Feature 18: Temporal Risk Engine (Time Machine)
+A predictive time-slider on the worker dashboard that simulates ML-forecasted disruption risk from NOW to +12 hours into the future. Dragging the slider forward progressively shifts the UI from a calm green state to a storm-warning red/purple state with escalating alerts ("CRITICAL: Level 4 Cyclone trajectory confirmed"). At higher risk levels, a micro-coverage top-up purchase button appears, demonstrating dynamic upsell capability tied to real-time forecasting.
+
+### Feature 19: Offline Mesh-Network Relay SOS
+A Bluetooth Low Energy (BLE) mesh relay simulator proving fault-tolerant claim lodging when cellular networks are down (e.g., during government internet shutdowns or flood blackouts). Pressing "Simulate Offline SOS" triggers a multi-stage animated flow: concentric radar rings scan for nearby peer devices, an encrypted link handshake is established with a mock nearby rider node (e.g., "Zomato_12XA"), and the claim payload is visually relayed through the mesh to RahatPay Central.
 
 ---
 

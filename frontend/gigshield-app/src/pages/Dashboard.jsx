@@ -25,6 +25,12 @@ import ThemeToggle from '../components/ThemeToggle';
 import { LanguageToggle, useI18n } from '../components/I18nProvider';
 import AnimatedCounter from '../components/AnimatedCounter';
 import SkeletonLoader from '../components/SkeletonLoader';
+import VoiceSOS from '../components/VoiceSOS';
+import BiometricScanner from '../components/BiometricScanner';
+import WhatsAppBot from '../components/WhatsAppBot';
+import HolographicPassport from '../components/HolographicPassport';
+import TimeMachine from '../components/TimeMachine';
+import MeshRadar from '../components/MeshRadar';
 
 // ============================================
 // ZONE TO PINCODE MAP
@@ -133,15 +139,13 @@ function WeatherWidget({ pincode, coords }) {
   const hasTriggers = weather.trigger_count > 0;
 
   return (
-    <div className={`p-6 rounded-3xl text-white shadow-lg relative overflow-hidden transition-all duration-500 ${
-      hasTriggers
+    <div className={`p-6 rounded-3xl text-white shadow-lg relative overflow-hidden transition-all duration-500 ${hasTriggers
         ? 'glass-super border-red-500/30'
         : 'glass-panel border-white/10'
-    }`}>
+      }`}>
       {/* Background Gradient */}
-      <div className={`absolute inset-0 opacity-40 transition-colors duration-500 ${
-        hasTriggers ? 'bg-gradient-to-br from-red-600 to-orange-600' : 'bg-gradient-to-br from-brand-600 to-indigo-600'
-      }`} />
+      <div className={`absolute inset-0 opacity-40 transition-colors duration-500 ${hasTriggers ? 'bg-gradient-to-br from-red-600 to-orange-600' : 'bg-gradient-to-br from-brand-600 to-indigo-600'
+        }`} />
 
       {/* Main Weather */}
       <div className="flex justify-between items-start relative z-10">
@@ -152,7 +156,7 @@ function WeatherWidget({ pincode, coords }) {
           </div>
           <p className="text-white/80 capitalize text-sm font-medium mt-2">{w.description}</p>
           <p className="text-white/70 text-xs mt-1">Feels like {Math.round(w.feels_like)}°C</p>
-          <p className="text-white/60 text-xs mt-3 flex items-center"><MapIcon size={12} className="mr-1"/> {weather.zone}, {weather.city}</p>
+          <p className="text-white/60 text-xs mt-3 flex items-center"><MapIcon size={12} className="mr-1" /> {weather.zone}, {weather.city}</p>
         </div>
         <div className="text-right text-sm space-y-2">
           <div className="bg-white/10 px-2 py-1 rounded-lg backdrop-blur-md">💨 {w.wind_speed_kmh} km/h</div>
@@ -170,7 +174,7 @@ function WeatherWidget({ pincode, coords }) {
       {hasTriggers && (
         <div className="mt-5 bg-red-950/40 border border-red-500/30 backdrop-blur-lg rounded-2xl p-4 relative z-10">
           <p className="font-bold text-sm text-red-200 mb-2 flex items-center">
-             <ShieldAlert size={16} className="mr-2" /> {weather.trigger_count} Active Alert{weather.trigger_count > 1 ? 's' : ''}
+            <ShieldAlert size={16} className="mr-2" /> {weather.trigger_count} Active Alert{weather.trigger_count > 1 ? 's' : ''}
           </p>
           {weather.triggers_detected.map((t, i) => (
             <div key={i} className="bg-red-500/20 text-red-100 rounded-lg px-3 py-2 mb-1 text-sm border border-red-500/20">
@@ -288,7 +292,7 @@ function ForecastWidget({ pincode, coords }) {
             {forecast.daily_forecast.slice(0, 5).map((day, idx) => {
               const dayName = new Date(day.date).toLocaleDateString('en-IN', { weekday: 'short' });
               return (
-                <div key={idx} className="bg-white/5 hover:bg-white/10 transition rounded-2xl p-2 border border-white/5 flex flex-col justify-between" style={{height: '110px'}}>
+                <div key={idx} className="bg-white/5 hover:bg-white/10 transition rounded-2xl p-2 border border-white/5 flex flex-col justify-between" style={{ height: '110px' }}>
                   <div className="text-xs text-slate-400 font-medium">{dayName}</div>
                   <div className="text-2xl my-1 drop-shadow-sm">{weatherIcon(day.condition)}</div>
                   <div className="flex flex-col items-center justify-center border-t border-white/5 pt-1 mt-1">
@@ -340,11 +344,10 @@ function ForecastWidget({ pincode, coords }) {
       </div>
 
       {/* Advisory */}
-      <div className={`mt-6 p-4 rounded-2xl text-sm border relative z-10 ${
-        forecast.predictions.heavy_rain?.probability > 50
+      <div className={`mt-6 p-4 rounded-2xl text-sm border relative z-10 ${forecast.predictions.heavy_rain?.probability > 50
           ? 'bg-yellow-900/20 border-yellow-500/30 text-yellow-200'
           : 'bg-green-900/20 border-green-500/30 text-green-200'
-      }`}>
+        }`}>
         <div className="flex items-start">
           <Info size={16} className="mr-2 mt-0.5 flex-shrink-0" />
           <span>{forecast.worker_advisory}</span>
@@ -362,7 +365,7 @@ function ForecastWidget({ pincode, coords }) {
           <div className="font-bold text-lg text-white">{forecast.expected_impact.expected_payout}</div>
         </div>
       </div>
-      
+
       {/* Source timestamp */}
       {forecast.fetched_at && (
         <div className="mt-4 text-[10px] text-slate-500 text-right font-medium relative z-10 tracking-wider uppercase">
@@ -398,13 +401,12 @@ function StreakWidget({ workerId }) {
   const active = streak.streak_active;
 
   return (
-    <div className={`p-6 rounded-3xl relative overflow-hidden transition-all duration-300 ${
-      active
+    <div className={`p-6 rounded-3xl relative overflow-hidden transition-all duration-300 ${active
         ? 'glass-super border-orange-500/30'
         : 'glass-panel border-white/10'
-    }`}>
+      }`}>
       {active && <div className="absolute inset-0 bg-gradient-to-br from-orange-600/40 to-red-600/40" />}
-      
+
       <div className="flex justify-between items-center relative z-10">
         <div>
           <h3 className="font-bold text-xl text-white flex items-center">
@@ -429,11 +431,10 @@ function StreakWidget({ workerId }) {
         {[1, 2, 3, 4].map((week) => (
           <div
             key={week}
-            className={`flex-1 h-3 rounded-full transition-all duration-500 border overflow-hidden ${
-              week <= streak.clean_weeks
+            className={`flex-1 h-3 rounded-full transition-all duration-500 border overflow-hidden ${week <= streak.clean_weeks
                 ? active ? 'bg-gradient-to-r from-yellow-400 to-orange-400 border-orange-300 shadow-[0_0_10px_rgba(251,146,60,0.5)]' : 'bg-gradient-to-r from-emerald-400 to-emerald-500 border-emerald-300'
                 : 'bg-slate-800/50 border-white/5'
-            }`}
+              }`}
           />
         ))}
       </div>
@@ -470,7 +471,7 @@ function PolicyCard({ workerId, policy, onUpdate }) {
       <div className="glass-panel p-8 rounded-3xl text-center border border-white/10">
         <div className="flex justify-center mb-4">
           <div className="bg-brand-900/30 p-4 rounded-full border border-brand-500/20">
-             <ShieldAlert size={32} className="text-brand-400" />
+            <ShieldAlert size={32} className="text-brand-400" />
           </div>
         </div>
         <h3 className="font-bold text-white text-xl mb-2">No Active Policy</h3>
@@ -575,7 +576,7 @@ function PolicyCard({ workerId, policy, onUpdate }) {
         )}
         {policy.days_remaining === 0 && (
           <div className="bg-red-900/40 border border-red-500/30 p-3 rounded-xl text-xs text-red-300 mb-4 flex items-center">
-             <AlertTriangle size={14} className="mr-2 flex-shrink-0" />
+            <AlertTriangle size={14} className="mr-2 flex-shrink-0" />
             Policy expired! Renew now to stay protected.
           </div>
         )}
@@ -597,14 +598,14 @@ function PolicyCard({ workerId, policy, onUpdate }) {
                 disabled={!!actionLoading}
                 className="flex-1 glass-panel text-white py-3 rounded-xl text-sm font-bold hover:bg-white/10 disabled:opacity-50 transition flex items-center justify-center border border-white/20"
               >
-                {actionLoading === 'pause' ? <span className="animate-pulse">...</span> : <><Power size={14} className="mr-2 text-yellow-400"/> Pause</>}
+                {actionLoading === 'pause' ? <span className="animate-pulse">...</span> : <><Power size={14} className="mr-2 text-yellow-400" /> Pause</>}
               </button>
               <button
                 onClick={() => handleAction('cancel')}
                 disabled={!!actionLoading}
                 className="flex-1 glass-panel text-white py-3 rounded-xl text-sm font-bold hover:bg-red-500/20 hover:border-red-500/30 disabled:opacity-50 transition flex items-center justify-center border border-white/10"
               >
-                 {actionLoading === 'cancel' ? <span className="animate-pulse">...</span> : <><XCircle size={14} className="mr-2 text-red-400"/> Cancel</>}
+                {actionLoading === 'cancel' ? <span className="animate-pulse">...</span> : <><XCircle size={14} className="mr-2 text-red-400" /> Cancel</>}
               </button>
             </>
           )}
@@ -670,18 +671,17 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="glass-super rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10" 
+        className="glass-super rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-white/10"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className={`p-6 border-b border-white/10 ${
-          status === 'auto_approved' || status === 'approved' ? 'bg-gradient-to-r from-emerald-600/30 to-emerald-900/40' :
-          status === 'rejected' ? 'bg-gradient-to-r from-red-600/30 to-red-900/40' :
-          'bg-gradient-to-r from-brand-600/30 to-brand-900/40'
-        }`}>
+        <div className={`p-6 border-b border-white/10 ${status === 'auto_approved' || status === 'approved' ? 'bg-gradient-to-r from-emerald-600/30 to-emerald-900/40' :
+            status === 'rejected' ? 'bg-gradient-to-r from-red-600/30 to-red-900/40' :
+              'bg-gradient-to-r from-brand-600/30 to-brand-900/40'
+          }`}>
           <div className="flex justify-between items-center">
             <div>
               <div className="text-xs uppercase tracking-widest text-white/50 mb-1">Claim #{claim.id}</div>
@@ -698,7 +698,7 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
         <div className="p-6 space-y-4">
           {/* Trigger */}
           <div className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl">
-            <div className="font-bold text-slate-300 mb-3 flex items-center"><Activity size={16} className="mr-2 text-brand-400"/> Disruption Details</div>
+            <div className="font-bold text-slate-300 mb-3 flex items-center"><Activity size={16} className="mr-2 text-brand-400" /> Disruption Details</div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div><span className="text-slate-500 block text-xs">Type</span> <span className="font-medium text-white text-base mt-0.5 inline-block">{TRIGGER_ICONS[triggerType] || '⚡'} {triggerType}</span></div>
               <div><span className="text-slate-500 block text-xs">Duration</span> <span className="font-medium text-white text-base mt-0.5 inline-block">{disruption}h</span></div>
@@ -722,27 +722,25 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
 
           {/* Fraud Score */}
           <div className="glass-panel p-5 rounded-2xl border border-white/5">
-            <div className="font-bold text-slate-300 mb-3 flex items-center"><ShieldAlert size={16} className="mr-2 text-brand-400"/> AI Verification Score</div>
+            <div className="font-bold text-slate-300 mb-3 flex items-center"><ShieldAlert size={16} className="mr-2 text-brand-400" /> AI Verification Score</div>
             <div className="flex items-center space-x-4 mb-2">
               <div className="flex-1 bg-slate-900 rounded-full h-3 border border-white/5 overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${
-                    fraudScore <= 30 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
-                    fraudScore <= 70 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gradient-to-r from-red-500 to-red-600'
-                  }`}
+                  className={`h-full rounded-full transition-all ${fraudScore <= 30 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' :
+                      fraudScore <= 70 ? 'bg-gradient-to-r from-yellow-400 to-orange-400' : 'bg-gradient-to-r from-red-500 to-red-600'
+                    }`}
                   style={{ width: `${fraudScore}%` }}
                 />
               </div>
-              <span className={`font-bold text-xl ${
-                fraudScore <= 30 ? 'text-emerald-400' :
-                fraudScore <= 70 ? 'text-yellow-400' : 'text-red-400'
-              }`}>
+              <span className={`font-bold text-xl ${fraudScore <= 30 ? 'text-emerald-400' :
+                  fraudScore <= 70 ? 'text-yellow-400' : 'text-red-400'
+                }`}>
                 {fraudScore}
               </span>
             </div>
             <p className="text-xs mt-2 font-medium px-3 py-1.5 rounded-lg inline-block bg-white/5 border border-white/5">
               {fraudScore <= 30 ? <span className="text-emerald-400">✅ Low risk — Auto approved</span> :
-               fraudScore <= 70 ? <span className="text-yellow-400">⚠️ Medium risk — Under review</span> : <span className="text-red-400">🔴 High risk — Flagged</span>}
+                fraudScore <= 70 ? <span className="text-yellow-400">⚠️ Medium risk — Under review</span> : <span className="text-red-400">🔴 High risk — Flagged</span>}
             </p>
 
             {/* Fraud Details */}
@@ -753,11 +751,10 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
                   .map(([key, value]) => (
                     <div key={key} className="flex justify-between text-xs bg-slate-800/40 px-3 py-2 rounded-lg border border-white/5">
                       <span className="text-slate-400 capitalize">{key.replace(/_/g, ' ')}</span>
-                      <span className={`font-bold ${
-                        String(value).includes('PASS') ? 'text-emerald-400' :
-                        String(value).includes('FLAG') ? 'text-yellow-400' :
-                        String(value).includes('FAIL') ? 'text-red-400' : 'text-slate-300'
-                      }`}>{String(value)}</span>
+                      <span className={`font-bold ${String(value).includes('PASS') ? 'text-emerald-400' :
+                          String(value).includes('FLAG') ? 'text-yellow-400' :
+                            String(value).includes('FAIL') ? 'text-red-400' : 'text-slate-300'
+                        }`}>{String(value)}</span>
                     </div>
                   ))}
               </div>
@@ -775,8 +772,8 @@ function ClaimDetailModal({ claim, onClose, onUpdate }) {
                   📝 Appeal This Decision
                 </button>
               ) : (
-                <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} className="space-y-4 bg-slate-900/50 p-4 rounded-2xl border border-white/10">
-                  <h4 className="font-bold text-white flex items-center"><Info size={16} className="mr-2 text-brand-400"/> Submit Appeal</h4>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 bg-slate-900/50 p-4 rounded-2xl border border-white/10">
+                  <h4 className="font-bold text-white flex items-center"><Info size={16} className="mr-2 text-brand-400" /> Submit Appeal</h4>
                   <textarea
                     value={appealReason}
                     onChange={(e) => setAppealReason(e.target.value)}
@@ -824,11 +821,12 @@ function Dashboard() {
   const [selectedClaim, setSelectedClaim] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [coords, setCoords] = useState(null);
-  
+
   // Outstanding Features
   const [sosActive, setSosActive] = useState(false);
   const [voiceActive, setVoiceActive] = useState(false);
   const [voiceTranscript, setVoiceTranscript] = useState('');
+  const [showBiometric, setShowBiometric] = useState(false);
 
   const loadDashboard = async (idToLoad = workerId) => {
     if (!idToLoad) return;
@@ -839,7 +837,7 @@ function Dashboard() {
     if (!dashboard && !window.hasAlertedPermissions) {
       window.hasAlertedPermissions = true;
       alert("🔒 Security Prompt: RahatPay requires access to your GPS, Gyroscope, and Ambient sensors for 7-Layer FraudShield telemetry.");
-      
+
       if (typeof window.DeviceOrientationEvent !== 'undefined' && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
         window.DeviceOrientationEvent.requestPermission().catch(console.error);
       }
@@ -876,10 +874,10 @@ function Dashboard() {
     if (!dashboard) return;
     setSimLoading(true);
     setSimResult(null);
-    
+
     // Trigger FraudShield scanning animation
     window.dispatchEvent(new Event('trigger-fraud-scan'));
-    
+
     const pincode = ZONE_PINCODE[dashboard.worker.zone] || '400053';
     try {
       const res = await simulateDisruption({
@@ -896,10 +894,10 @@ function Dashboard() {
 
   const handleSOS = () => {
     setSosActive(true);
-    
+
     // Trigger FraudShield scanning animation
     window.dispatchEvent(new Event('trigger-fraud-scan'));
-    
+
     setTimeout(() => {
       alert("🚨 PRIORITY 0: Satellite SOS Signal Sent!\nCoordinates Locked: " + (coords ? `${coords.lat}, ${coords.lon}` : "Local Tower Proxy") + "\nMedical Rapid Response & Payout Dispatched.");
       setSosActive(false);
@@ -913,29 +911,29 @@ function Dashboard() {
     }
     setVoiceActive(true);
     setVoiceTranscript('Listening... Speak now.');
-    
+
     try {
       const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRec();
       recognition.lang = 'en-IN';
       recognition.start();
-      
+
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setVoiceTranscript(`"${transcript}"`);
-        
+
         // Trigger FraudShield scanning animation upon processing transcript
         window.dispatchEvent(new Event('trigger-fraud-scan'));
-        
+
         setTimeout(() => {
-           alert(`🎙️ AI Processed Voice Claim:\n"${transcript}"\n\nCategorized as: ON_ROAD_EMERGENCY. Priority set to High.`);
-           setVoiceActive(false);
+          alert(`🎙️ AI Processed Voice Claim:\n"${transcript}"\n\nCategorized as: ON_ROAD_EMERGENCY. Priority set to High.`);
+          setVoiceActive(false);
         }, 2000);
       };
       recognition.onerror = () => setVoiceActive(false);
-      recognition.onend = () => { 
+      recognition.onend = () => {
         if (voiceTranscript === 'Listening... Speak now.') {
-          setVoiceActive(false); 
+          setVoiceActive(false);
         }
       };
     } catch (err) {
@@ -948,7 +946,7 @@ function Dashboard() {
     return (
       <div className="flex items-center justify-center py-20 px-4 relative min-h-[80vh]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-brand-900/20 via-slate-900 to-slate-900 pointer-events-none" />
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           className="glass-super p-10 rounded-[2.5rem] shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-white/10 max-w-md w-full relative z-10"
@@ -958,7 +956,7 @@ function Dashboard() {
           </div>
           <h2 className="text-3xl font-bold mb-2 text-white text-center">RahatPay Central</h2>
           <p className="text-slate-400 mb-8 text-center text-sm px-4">Identify using your Gig Worker Hash to view protected earnings.</p>
-          
+
           <div className="flex flex-col space-y-4 relative">
             <div className="relative">
               <input
@@ -1014,7 +1012,7 @@ function Dashboard() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center relative">
           <div className="absolute inset-0 bg-brand-500/20 blur-[50px] rounded-full pointer-events-none" />
-          <motion.div 
+          <motion.div
             animate={{ scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
             className="text-6xl mb-6 relative z-10 inline-block bg-gradient-to-br from-brand-400 to-indigo-600 p-4 rounded-3xl"
@@ -1045,6 +1043,11 @@ function Dashboard() {
       <div className="fixed inset-0 bg-slate-950 -z-10" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-900/20 via-slate-950 to-slate-950 -z-10" />
 
+      {/* Outstanding Hackathon Features */}
+      <VoiceSOS workerZone={dashboard.worker.zone} workerPincode={workerPincode} onClaimTriggered={() => setTimeout(loadDashboard, 1500)} />
+      <WhatsAppBot workerZone={dashboard.worker.zone} workerPincode={workerPincode} workerId={workerId} onClaimTriggered={() => setTimeout(loadDashboard, 1500)} />
+      {showBiometric && <BiometricScanner onScanComplete={() => setShowBiometric(false)} />}
+
       {/* Claim Modal */}
       {selectedClaim && (
         <ClaimDetailModal
@@ -1063,7 +1066,7 @@ function Dashboard() {
             <p className="text-sm text-slate-400 flex items-center space-x-3">
               <span className="font-mono bg-slate-800 px-2 py-0.5 rounded text-brand-300 border border-slate-700">#{dashboard.worker.token}</span>
               <span className="capitalize px-2 py-0.5 rounded bg-white/5 border border-white/10">{dashboard.worker.platform}</span>
-              <span className="flex items-center"><MapIcon size={14} className="mr-1"/> {dashboard.worker.zone}</span>
+              <span className="flex items-center"><MapIcon size={14} className="mr-1" /> {dashboard.worker.zone}</span>
             </p>
           </div>
           <div className="flex items-center space-x-4 relative z-10">
@@ -1071,33 +1074,40 @@ function Dashboard() {
             <div className="relative w-16 h-16 flex items-center justify-center group cursor-pointer" title={`Trust Score: ${dashboard.worker.trust_score}`}>
               <div className="absolute inset-0 bg-brand-500/5 rounded-full blur-md group-hover:bg-brand-500/20 transition-all"></div>
               <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                 <circle cx="32" cy="32" r="28" fill="none" strokeWidth="6" className="stroke-slate-800" />
-                 <circle cx="32" cy="32" r="28" fill="none" strokeWidth="6" strokeDasharray="175" strokeDashoffset={175 - (175 * dashboard.worker.trust_score / 100)} className={`${
-                   dashboard.worker.trust_tier === 'PLATINUM' ? 'stroke-purple-500 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]' :
-                   dashboard.worker.trust_tier === 'GOLD' ? 'stroke-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]' :
-                   dashboard.worker.trust_tier === 'SILVER' ? 'stroke-slate-400' : 'stroke-orange-500'
-                 } transition-all duration-1500 ease-out`} strokeLinecap="round" />
+                <circle cx="32" cy="32" r="28" fill="none" strokeWidth="6" className="stroke-slate-800" />
+                <circle cx="32" cy="32" r="28" fill="none" strokeWidth="6" strokeDasharray="175" strokeDashoffset={175 - (175 * dashboard.worker.trust_score / 100)} className={`${dashboard.worker.trust_tier === 'PLATINUM' ? 'stroke-purple-500 drop-shadow-[0_0_5px_rgba(168,85,247,0.5)]' :
+                    dashboard.worker.trust_tier === 'GOLD' ? 'stroke-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]' :
+                      dashboard.worker.trust_tier === 'SILVER' ? 'stroke-slate-400' : 'stroke-orange-500'
+                  } transition-all duration-1500 ease-out`} strokeLinecap="round" />
               </svg>
               <div className="flex flex-col items-center justify-center relative z-10">
                 <span className="text-sm font-black text-white">{dashboard.worker.trust_score}</span>
               </div>
             </div>
-            
-            <div className={`px-4 py-2.5 rounded-xl text-sm font-bold flex flex-col justify-center border bg-opacity-20 backdrop-blur-md shadow-lg ${
-              dashboard.worker.trust_tier === 'PLATINUM' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-purple-500/10' :
-              dashboard.worker.trust_tier === 'GOLD' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30 shadow-yellow-500/10' :
-              dashboard.worker.trust_tier === 'SILVER' ? 'bg-slate-500/20 text-slate-300 border-slate-500/30' :
-              'bg-orange-500/20 text-orange-300 border-orange-500/30'
-            }`}>
+
+            <div className={`px-4 py-2.5 rounded-xl text-sm font-bold flex flex-col justify-center border bg-opacity-20 backdrop-blur-md shadow-lg ${dashboard.worker.trust_tier === 'PLATINUM' ? 'bg-purple-500/20 text-purple-300 border-purple-500/30 shadow-purple-500/10' :
+                dashboard.worker.trust_tier === 'GOLD' ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30 shadow-yellow-500/10' :
+                  dashboard.worker.trust_tier === 'SILVER' ? 'bg-slate-500/20 text-slate-300 border-slate-500/30' :
+                    'bg-orange-500/20 text-orange-300 border-orange-500/30'
+              }`}>
               <span className="tracking-widest">{dashboard.worker.trust_tier}</span>
             </div>
-            
+
             <NotificationCenter recipientType="worker" workerId={dashboard.worker.id} />
-            
+
+            <button onClick={() => setShowBiometric(true)} className="bg-brand-950/80 text-brand-400 font-bold text-[10px] uppercase tracking-widest px-4 py-2 hover:bg-brand-900/80 transition-all rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.3)] border border-brand-500/50 flex items-center">
+              <span className="w-2 h-2 rounded-full bg-brand-400 animate-ping mr-2" /> Start Shift
+            </button>
+
             <button onClick={() => { setDashboard(null); setClaims(null); setWorkerId(''); }} className="glass-panel p-3.5 rounded-xl text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all shadow-sm" title="Logout">
               <LogOut size={20} />
             </button>
           </div>
+        </div>
+        
+        {/* Holographic Passport Digital Twin */}
+        <div className="mt-8 flex justify-center w-full">
+           <HolographicPassport worker={{...dashboard.worker, token: dashboard.worker.token, trust_tier: dashboard.worker.trust_tier}} />
         </div>
       </div>
 
@@ -1112,11 +1122,10 @@ function Dashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${
-                activeTab === tab.id 
-                  ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/25 border border-brand-500/50' 
+              className={`flex items-center space-x-2 py-2.5 px-6 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === tab.id
+                  ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/25 border border-brand-500/50'
                   : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
+                }`}
             >
               {tab.icon} <span>{tab.label}</span>
             </button>
@@ -1127,19 +1136,19 @@ function Dashboard() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* ===== OVERVIEW TAB ===== */}
         {activeTab === 'overview' && (
-          <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}}>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg group hover:border-brand-500/30 transition">
                 <div className="w-10 h-10 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center mb-3">
-                   <ShieldAlert size={20} />
+                  <ShieldAlert size={20} />
                 </div>
                 <div className="text-2xl font-bold text-white capitalize tracking-tight mb-1">{dashboard.active_policy.plan_type || 'None'}</div>
                 <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Active Policy</div>
               </div>
               <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg group hover:border-emerald-500/30 transition">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
-                   <span className="text-lg font-bold">₹</span>
+                  <span className="text-lg font-bold">₹</span>
                 </div>
                 <div className="text-2xl font-bold text-white tracking-tight mb-1">₹{dashboard.active_policy.weekly_premium}</div>
                 <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Weekly Premium</div>
@@ -1147,14 +1156,14 @@ function Dashboard() {
               <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg relative overflow-hidden group hover:border-blue-500/30 transition">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-transparent -z-10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3">
-                   <TrendingUp size={20} />
+                  <TrendingUp size={20} />
                 </div>
                 <div className="text-2xl font-bold text-white tracking-tight mb-1">₹{dashboard.stats.total_earnings_protected}</div>
                 <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Protected Earnings</div>
               </div>
               <div className="glass-panel p-5 rounded-3xl border border-white/5 shadow-lg group hover:border-orange-500/30 transition">
                 <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center mb-3">
-                   <Activity size={20} />
+                  <Activity size={20} />
                 </div>
                 <div className="text-2xl font-bold text-white tracking-tight mb-1">{dashboard.stats.total_claims}</div>
                 <div className="text-xs text-slate-400 uppercase tracking-widest font-medium">Total Claims</div>
@@ -1193,9 +1202,15 @@ function Dashboard() {
               <FraudShield workerId={workerId} />
             </div>
 
+            {/* Time Machine & Mesh Radar */}
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+               <TimeMachine />
+               <MeshRadar />
+            </div>
+
             {/* 🔥 FIRST PRIZE FEATURES: INTENSIVE DYNAMIC INTERACTIONS 🔥 */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
-              
+
               {/* 1. SOS SATELLITE PROTOCOL */}
               <div className="glass-panel p-6 rounded-3xl shadow-[0_0_20px_rgba(239,68,68,0.15)] border border-red-500/20 relative overflow-hidden group">
                 <div className={`absolute inset-0 bg-gradient-to-br from-red-600/20 to-orange-600/10 transition-opacity duration-500 ${sosActive ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
@@ -1204,14 +1219,13 @@ function Dashboard() {
                     <h3 className="text-xl font-bold text-red-400 mb-2 flex items-center"><Satellite className="mr-2" /> Global SOS Override</h3>
                     <p className="text-xs text-slate-400 mb-4 max-w-sm">Bypasses standard processing to extract live HTML5 coordinates and deploy instantaneous priority funds.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={handleSOS}
                     disabled={sosActive}
-                    className={`w-full py-4 rounded-2xl font-black tracking-widest text-lg transition-all duration-300 shadow-xl border ${
-                      sosActive 
-                        ? 'bg-red-500 text-white border-red-400 shadow-red-500/50' 
+                    className={`w-full py-4 rounded-2xl font-black tracking-widest text-lg transition-all duration-300 shadow-xl border ${sosActive
+                        ? 'bg-red-500 text-white border-red-400 shadow-red-500/50'
                         : 'bg-red-950/50 text-red-500 border-red-500/30 hover:bg-red-900/40 hover:text-red-400 hover:border-red-500/50'
-                    }`}
+                      }`}
                   >
                     {sosActive ? '🛰️ TRANSMITTING P91...' : '🚨 TAP FOR SOS'}
                   </button>
@@ -1222,44 +1236,43 @@ function Dashboard() {
               <div className="glass-panel p-6 rounded-3xl shadow-[0_0_20px_rgba(59,130,246,0.15)] border border-blue-500/20 relative overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-br from-blue-600/20 to-cyan-600/10 transition-opacity duration-500 ${voiceActive ? 'opacity-100' : 'opacity-0'}`} />
                 <div className="relative z-10 flex flex-col justify-between h-full">
-                   <div>
+                  <div>
                     <h3 className="text-xl font-bold text-blue-400 mb-2 flex items-center"><Mic className="mr-2" /> AI Voice Claims</h3>
                     <p className="text-xs text-slate-400 mb-4 max-w-sm">Speak your claim directly using Neural NLP parsing. Audio is dynamically translated to active triggers.</p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button 
+                    <button
                       onClick={handleVoiceClaim}
                       disabled={voiceActive}
-                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-xl border ${
-                        voiceActive 
-                          ? 'bg-blue-500 text-white border-blue-400 shadow-blue-500/50 animate-bounce' 
+                      className={`h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300 shadow-xl border ${voiceActive
+                          ? 'bg-blue-500 text-white border-blue-400 shadow-blue-500/50 animate-bounce'
                           : 'bg-blue-950/50 text-blue-500 border-blue-500/30 hover:bg-blue-900/40 hover:text-blue-400'
-                      }`}
+                        }`}
                     >
                       <Mic size={24} />
                     </button>
                     <div className="flex-1 bg-slate-900/50 rounded-xl p-3 border border-white/5 h-14 flex items-center overflow-hidden">
-                       <span className={`text-[10px] leading-tight truncate w-full ${voiceActive || voiceTranscript ? 'text-white' : 'text-slate-500 italic'}`}>
-                         {voiceTranscript || 'Tap mic to dictate claim...'}
-                       </span>
+                      <span className={`text-[10px] leading-tight truncate w-full ${voiceActive || voiceTranscript ? 'text-white' : 'text-slate-500 italic'}`}>
+                        {voiceTranscript || 'Tap mic to dictate claim...'}
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
-              
+
               {/* 3. AI DAMAGE SCANNER */}
               <div className="glass-panel p-6 rounded-3xl shadow-[0_0_20px_rgba(168,85,247,0.15)] border border-purple-500/20 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-fuchsia-600/10 opacity-30" />
                 <div className="relative z-10 flex flex-col justify-between h-full">
-                   <div>
+                  <div>
                     <h3 className="text-xl font-bold text-purple-400 mb-2 flex items-center"><Car className="mr-2" /> Damage Scan AI</h3>
                     <p className="text-xs text-slate-400 mb-4 max-w-sm">Leverage computer vision models to instantly analyze component breakdown severity without manual inspection.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
-                       const btn = document.getElementById('ai-cam-btn');
-                       btn.innerHTML = '🔄 Processing Vision Model...';
-                       setTimeout(() => { btn.innerHTML = '✅ 94.2% AI Confidence Score'; setTimeout(() => btn.innerHTML = '📸 SCAN VEHICLE', 3000); }, 2000);
+                      const btn = document.getElementById('ai-cam-btn');
+                      btn.innerHTML = '🔄 Processing Vision Model...';
+                      setTimeout(() => { btn.innerHTML = '✅ 94.2% AI Confidence Score'; setTimeout(() => btn.innerHTML = '📸 SCAN VEHICLE', 3000); }, 2000);
                     }}
                     id="ai-cam-btn"
                     className="w-full py-4 rounded-2xl font-black tracking-widest text-lg transition-all duration-300 shadow-xl border bg-purple-950/50 text-purple-400 border-purple-500/30 hover:bg-purple-900/40 hover:text-purple-300 hover:border-purple-500/50"
@@ -1275,7 +1288,7 @@ function Dashboard() {
             {dashboard.recent_claims && dashboard.recent_claims.length > 0 && (
               <div className="glass-panel p-6 rounded-3xl shadow-lg border border-white/5">
                 <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-bold text-white flex items-center"><Clock size={18} className="mr-2 text-brand-400"/> Recent Activity</h3>
+                  <h3 className="text-lg font-bold text-white flex items-center"><Clock size={18} className="mr-2 text-brand-400" /> Recent Activity</h3>
                   <button onClick={() => setActiveTab('claims')} className="text-xs font-bold text-brand-400 hover:text-brand-300 transition flex items-center uppercase tracking-widest">
                     View All <ChevronRight size={14} className="ml-1" />
                   </button>
@@ -1304,12 +1317,11 @@ function Dashboard() {
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-emerald-400 text-lg tracking-tight">₹{c.payout}</div>
-                          <span className={`text-[10px] uppercase tracking-widest font-bold mt-1 inline-block ${
-                            c.status === 'auto_approved' || c.status === 'approved' ? 'text-emerald-500' :
-                            c.status === 'manual_review' ? 'text-yellow-500' :
-                            c.status === 'under_appeal' ? 'text-blue-500' :
-                            'text-red-500'
-                          }`}>{c.status.replace(/_/g, ' ')}</span>
+                          <span className={`text-[10px] uppercase tracking-widest font-bold mt-1 inline-block ${c.status === 'auto_approved' || c.status === 'approved' ? 'text-emerald-500' :
+                              c.status === 'manual_review' ? 'text-yellow-500' :
+                                c.status === 'under_appeal' ? 'text-blue-500' :
+                                  'text-red-500'
+                            }`}>{c.status.replace(/_/g, ' ')}</span>
                         </div>
                       </div>
                     );
@@ -1325,9 +1337,9 @@ function Dashboard() {
 
         {/* ===== CLAIMS TAB ===== */}
         {activeTab === 'claims' && (
-          <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} className="glass-panel p-6 sm:p-8 rounded-3xl shadow-lg border border-white/5">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-panel p-6 sm:p-8 rounded-3xl shadow-lg border border-white/5">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-white flex items-center"><Activity size={20} className="mr-2 text-brand-400"/> All Claims <span className="ml-2 bg-white/10 px-2 py-0.5 rounded-lg text-sm">{claims?.total_claims || 0}</span></h3>
+              <h3 className="text-xl font-bold text-white flex items-center"><Activity size={20} className="mr-2 text-brand-400" /> All Claims <span className="ml-2 bg-white/10 px-2 py-0.5 rounded-lg text-sm">{claims?.total_claims || 0}</span></h3>
               <div className="text-sm bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
                 Protected: <span className="font-bold text-emerald-400">₹{claims?.total_earnings_protected || 0}</span>
               </div>
@@ -1354,18 +1366,17 @@ function Dashboard() {
                             {c.trigger_zone && <><span className="mx-1 text-slate-600">•</span> {c.trigger_zone}</>}
                           </div>
                           {c.transaction_id && (
-                            <div className="text-[10px] text-slate-500 font-mono mt-1 flex items-center"><Zap size={10} className="mr-1"/> Txn: {c.transaction_id}</div>
+                            <div className="text-[10px] text-slate-500 font-mono mt-1 flex items-center"><Zap size={10} className="mr-1" /> Txn: {c.transaction_id}</div>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="font-bold text-emerald-400 text-xl tracking-tight">₹{c.payout_amount}</div>
-                        <span className={`text-[10px] uppercase tracking-widest font-bold mt-1 inline-block px-2 py-0.5 rounded border ${
-                          ['auto_approved', 'approved'].includes(c.status) ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                          c.status === 'manual_review' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
-                          c.status === 'under_appeal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                          'bg-red-500/10 text-red-400 border-red-500/20'
-                        }`}>{c.status.replace(/_/g, ' ')}</span>
+                        <span className={`text-[10px] uppercase tracking-widest font-bold mt-1 inline-block px-2 py-0.5 rounded border ${['auto_approved', 'approved'].includes(c.status) ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                            c.status === 'manual_review' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' :
+                              c.status === 'under_appeal' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                'bg-red-500/10 text-red-400 border-red-500/20'
+                          }`}>{c.status.replace(/_/g, ' ')}</span>
                         <div className="text-[10px] text-slate-500 mt-1 font-mono uppercase">AI Score: {c.fraud_score}</div>
                       </div>
                     </div>
@@ -1386,10 +1397,10 @@ function Dashboard() {
 
         {/* ===== SIMULATE TAB ===== */}
         {activeTab === 'simulate' && (
-          <motion.div initial={{opacity: 0, y: 10}} animate={{opacity: 1, y: 0}} className="space-y-6">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="glass-panel p-6 sm:p-8 rounded-3xl shadow-lg border border-white/5 relative overflow-hidden">
               <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px]" />
-              <h3 className="text-2xl font-bold mb-2 text-white flex items-center relative z-10"><Zap size={24} className="mr-2 text-brand-400"/> Simulate Disruption</h3>
+              <h3 className="text-2xl font-bold mb-2 text-white flex items-center relative z-10"><Zap size={24} className="mr-2 text-brand-400" /> Simulate Disruption</h3>
               <p className="text-slate-400 text-sm mb-6 relative z-10 max-w-2xl">
                 Test the parametric coverage engine in <strong>{dashboard.worker.zone}</strong>.
                 Selecting an event below will create a trigger → run the AI fraud detection → process payouts for affected workers instantly.
@@ -1420,9 +1431,9 @@ function Dashboard() {
 
               {simLoading && (
                 <div className="mt-8 pt-8 border-t border-white/10 text-center relative z-10">
-                   <div className="w-16 h-16 mx-auto bg-brand-500/20 text-brand-400 rounded-full flex items-center justify-center border border-brand-500/30 shadow-[0_0_20px_rgba(79,70,229,0.3)] mb-4">
-                     <Zap size={28} className="animate-pulse" />
-                   </div>
+                  <div className="w-16 h-16 mx-auto bg-brand-500/20 text-brand-400 rounded-full flex items-center justify-center border border-brand-500/30 shadow-[0_0_20px_rgba(79,70,229,0.3)] mb-4">
+                    <Zap size={28} className="animate-pulse" />
+                  </div>
                   <p className="text-white font-bold text-lg mb-1">Processing Parametric Trigger...</p>
                   <p className="text-slate-400 text-sm">Evaluating risk → Running AI model → Dispersing funds</p>
                 </div>
@@ -1431,7 +1442,7 @@ function Dashboard() {
 
             {/* Result */}
             {simResult && !simResult.error && (
-              <motion.div initial={{opacity: 0, scale: 0.98}} animate={{opacity: 1, scale: 1}} className="glass-panel p-6 sm:p-8 rounded-3xl shadow-[0_0_30px_rgba(16,185,129,0.1)] border border-emerald-500/30 relative overflow-hidden">
+              <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="glass-panel p-6 sm:p-8 rounded-3xl shadow-[0_0_30px_rgba(16,185,129,0.1)] border border-emerald-500/30 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/10 to-transparent pointer-events-none" />
                 <h3 className="text-xl font-bold text-emerald-400 mb-6 flex items-center relative z-10"><ShieldAlert size={20} className="mr-2" /> Action Verified & Processed!</h3>
 
@@ -1447,11 +1458,11 @@ function Dashboard() {
                     </div>
                     <div>
                       <div className="text-slate-500 text-xs mb-1 uppercase tracking-wider font-bold">Impact Zone</div>
-                      <div className="font-bold text-white flex items-center"><MapIcon size={14} className="mr-1 text-slate-400"/> {simResult.trigger?.zone}</div>
+                      <div className="font-bold text-white flex items-center"><MapIcon size={14} className="mr-1 text-slate-400" /> {simResult.trigger?.zone}</div>
                     </div>
                     <div>
                       <div className="text-slate-500 text-xs mb-1 uppercase tracking-wider font-bold">Active Duration</div>
-                      <div className="font-bold text-white flex items-center"><Clock size={14} className="mr-1 text-slate-400"/> {simResult.trigger?.duration_hours}hrs pending</div>
+                      <div className="font-bold text-white flex items-center"><Clock size={14} className="mr-1 text-slate-400" /> {simResult.trigger?.duration_hours}hrs pending</div>
                     </div>
                   </div>
                 </div>
@@ -1478,7 +1489,7 @@ function Dashboard() {
                 {/* Individual Claims */}
                 {simResult.claims && simResult.claims.length > 0 && (
                   <div className="relative z-10 border-t border-white/5 pt-6">
-                    <h4 className="font-bold text-sm text-white mb-4 flex items-center"><Activity size={16} className="mr-2 text-brand-400"/> Fund Dispersal Log</h4>
+                    <h4 className="font-bold text-sm text-white mb-4 flex items-center"><Activity size={16} className="mr-2 text-brand-400" /> Fund Dispersal Log</h4>
                     <div className="space-y-2">
                       {simResult.claims.map((c, i) => (
                         <div key={i} className="bg-slate-900/50 px-4 py-3 rounded-xl flex justify-between items-center text-sm border border-white/5">
@@ -1492,16 +1503,14 @@ function Dashboard() {
                             </div>
                           </div>
                           <div className="flex items-center space-x-4">
-                            <span className={`px-2 py-1 rounded bg-slate-950 border border-white/5 font-mono text-[10px] uppercase font-bold tracking-wider ${
-                              c.fraud_score <= 30 ? 'text-emerald-400' :
-                              c.fraud_score <= 70 ? 'text-yellow-400' : 'text-red-400'
-                            }`}>Risk: {c.fraud_score}</span>
+                            <span className={`px-2 py-1 rounded bg-slate-950 border border-white/5 font-mono text-[10px] uppercase font-bold tracking-wider ${c.fraud_score <= 30 ? 'text-emerald-400' :
+                                c.fraud_score <= 70 ? 'text-yellow-400' : 'text-red-400'
+                              }`}>Risk: {c.fraud_score}</span>
                             <span className="font-bold text-emerald-400 text-base">₹{c.payout_amount}</span>
-                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${
-                              c.status === 'auto_approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 
-                              c.status === 'manual_review' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 
-                              'bg-red-500/20 text-red-400 border border-red-500/30'
-                            }`}>
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${c.status === 'auto_approved' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' :
+                                c.status === 'manual_review' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                  'bg-red-500/20 text-red-400 border border-red-500/30'
+                              }`}>
                               {c.status === 'auto_approved' ? '✓' : c.status === 'manual_review' ? '⏳' : '✕'}
                             </span>
                           </div>
@@ -1513,9 +1522,9 @@ function Dashboard() {
 
                 {simResult.rejected && simResult.rejected.length > 0 && (
                   <div className="mt-6 pt-6 border-t border-white/5 relative z-10">
-                    <h4 className="font-bold text-xs text-red-400 uppercase tracking-widest mb-3 flex items-center"><XCircle size={14} className="mr-2"/> Denied by Rules Engine</h4>
+                    <h4 className="font-bold text-xs text-red-400 uppercase tracking-widest mb-3 flex items-center"><XCircle size={14} className="mr-2" /> Denied by Rules Engine</h4>
                     <div className="space-y-2">
-                       {simResult.rejected.map((r, i) => (
+                      {simResult.rejected.map((r, i) => (
                         <div key={i} className="text-sm text-slate-400 bg-red-900/10 border border-red-500/10 px-3 py-2 rounded-lg flex items-center">
                           <span className="font-medium mr-2 text-slate-300">{r.worker_name}</span> <span className="opacity-60">— {r.reason}</span>
                         </div>
@@ -1528,7 +1537,7 @@ function Dashboard() {
 
             {simResult?.error && (
               <div className="bg-red-900/30 border border-red-500/30 p-4 rounded-xl flex items-center">
-                 <AlertTriangle size={20} className="text-red-400 mr-3" />
+                <AlertTriangle size={20} className="text-red-400 mr-3" />
                 <p className="text-red-300 font-medium">{simResult.error}</p>
               </div>
             )}
@@ -1537,7 +1546,7 @@ function Dashboard() {
       </div>
 
       {/* 4. GENERATIVE AI RahatPay BOT (FLOATING CTA) */}
-      <button 
+      <button
         onClick={() => alert(`🤖 RahatPay GenAI Beta:\n\nHello ${dashboard?.worker?.name || 'Worker'}! Based on your active policies, you are fully covered for flood anomalies in ${dashboard?.worker?.zone || 'your zone'}. Your trust tier acts as a 1.2x auto-multiplier.\n\n(This demonstrates Generative NLP integration into personalized states.)`)}
         className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-brand-500 to-indigo-600 rounded-full shadow-[0_0_30px_rgba(79,70,229,0.5)] border border-white/20 flex items-center justify-center hover:scale-110 transition-transform active:scale-95 group z-50 pointer-events-auto"
       >

@@ -3,13 +3,13 @@ import { getVerificationStatus } from '../services/api';
 import sensorCollector from '../services/SensorCollector';
 
 const LAYER_NAMES = [
-  { key: 'L1', name: 'GPS Location', icon: '📍', weight: '10%', desc: 'Is device in the disrupted zone?' },
-  { key: 'L2', name: 'GPS Trajectory', icon: '🛤️', weight: '20%', desc: 'Natural movement trail analysis' },
-  { key: 'L3', name: 'Motion & Activity', icon: '🏃', weight: '20%', desc: 'Accelerometer, gyroscope, steps' },
-  { key: 'L4', name: 'Network & Cell Tower', icon: '📶', weight: '20%', desc: 'Cell tower triangulation' },
-  { key: 'L5', name: 'Environmental Sensors', icon: '🌡️', weight: '10%', desc: 'Barometer, light, noise' },
-  { key: 'L6', name: 'Behavioral Analysis', icon: '🧠', weight: '15%', desc: 'Working hours & claim patterns' },
-  { key: 'L7', name: 'Crowd Intelligence', icon: '👥', weight: '5%', desc: 'Syndicate & device clustering' },
+  { key: 'L1', name: 'Spatial Geo-Fencing', icon: '🛰️', weight: '10%', desc: 'Real-time boundary validation against disrupted polygons' },
+  { key: 'L2', name: 'Kalman Filter Trajectory', icon: '🧬', weight: '20%', desc: 'Detects impossible velocity vectors and GPS spoofing' },
+  { key: 'L3', name: 'Biomechanical Telemetry', icon: '⚙️', weight: '20%', desc: 'IMU signature mapping (Accel/Gyro micro-vibrations)' },
+  { key: 'L4', name: 'BSSID Triangulation', icon: '📡', weight: '20%', desc: 'Cross-verifies GSM cell towers & Wi-Fi localized nodes' },
+  { key: 'L5', name: 'Barometric Noise Correlation', icon: '🌪️', weight: '10%', desc: 'Validates ambient pressure/lux drops matching weather claims' },
+  { key: 'L6', name: 'Temporal Behavioral AI', icon: '🧠', weight: '15%', desc: 'Deep learning evaluation of historical claim velocity anomalies' },
+  { key: 'L7', name: 'Syndicate Clustering Matrix', icon: '👥', weight: '5%', desc: 'Identifies organized mass-claims via device IP fingerprints' },
 ];
 
 const STATUS_STYLES = {

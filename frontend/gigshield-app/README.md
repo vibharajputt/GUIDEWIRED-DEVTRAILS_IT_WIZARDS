@@ -1,6 +1,35 @@
-# Getting Started with Create React App
+# GigShield Frontend Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Hackathon Features Showcase
+The following mind-blowing features have been integrated into this frontend:
+
+### 1. Autonomous Voice-SOS Claims (Web Speech AI)
+A persistent, floating microphone interface available to the worker. Powered natively by the browser's Web Speech API, it allows workers in distress to speak their claim directly. The Natural Language Processing engine extracts keywords such as accident, flood, heat, or curfew, and instantly triggers the backend claim API autonomously without requiring any typed input.
+
+### 2. Biometric Fatigue Scanner (AR Computer Vision)
+Before a worker starts their shift, the system engages the device webcam via WebRTC to simulate a Photoplethysmography (PPG) vitals scan. An animated AR grid scans the user's face to calculate Heart Rate and Stress Index, determining the worker's fatigue map before allowing them to clock in.
+
+### 3. Immutable Smart Contract Web3 Ledger
+A cryptographic minting terminal placed right inside the Admin dashboard mimicking a Web3 zero-touch payout ledger. As automated payouts are processed, it natively generates and renders SHA-256 hashes, mock gas fees, and execution tags in a cascading matrix, proving the immutable nature of the parametric system.
+
+### 4. 7-Layer Intelligent Fraud Shield (Military Grade)
+Multi-signal authenticity engine incorporating Spatial Geo-Fencing, Kalman Filter Trajectory analysis to block GPS spoofing, Biomechanical Telemetry via IMU sensors, BSSID Triangulation across GSM and WiFi networks, Barometric Noise Correlation, Temporal Behavioral ML, and a Syndicate Clustering Matrix to identify massive coordinated strikes.
+
+### 5. Omnichannel WhatsApp Bot with Hinglish NLP
+A fully functional WhatsApp-style floating chat interface on the worker dashboard. Workers can type naturally in Hinglish (e.g., "bhai bahut tez baarish ho rahi hai, paani bhar gaya") and the custom NLP regex engine extracts disruption keywords, maps them to backend triggers, responds contextually in Hinglish, and autonomously fires the claim API without any manual form-filling.
+
+### 6. 3D Holographic Digital Twin Passport
+A premium, mouse-tracking 3D identity card using CSS perspective transforms and framer-motion spring physics. Moving the cursor produces a realistic tilt effect with a radial glare overlay simulating holographic foil. Dynamically adapts color gradient and badge label based on trust tier (Bronze through Platinum).
+
+### 7. Temporal Risk Engine (Time Machine)
+A predictive time-slider that simulates ML-forecasted disruption risk from NOW to +12 hours into the future. Dragging the slider progressively shifts the UI from calm green to storm-warning red/purple with escalating alerts and dynamic micro-coverage upsell prompts.
+
+### 8. Offline Mesh-Network Relay SOS
+A Bluetooth Low Energy (BLE) mesh relay simulator proving fault-tolerant claim lodging when cellular networks are down. Triggers a multi-stage animated flow with radar rings, encrypted peer handshakes, and visual payload relay through nearby rider nodes.
+
+---
+
+# Getting Started with Create React App
 
 ## Available Scripts
 
