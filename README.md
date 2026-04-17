@@ -29,7 +29,7 @@
 20. [Innovative Features and Differentiators](#-innovative-features-and-differentiators)
 21. [Development Roadmap](#-development-roadmap)
 22. [Team](#-team)
-23. Pitch Deck
+23. [Pitch Deck](#-pitch-deck)
 
 ---
 
